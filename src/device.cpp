@@ -1,5 +1,6 @@
 #include "device.h"
 
+/* States for virtual EasyButton objects */
 #ifdef I2C_KEYPAD
 bool state_KEY_MATRIX_A, state_KEY_MATRIX_B, state_KEY_MATRIX_C, state_KEY_MATRIX_D, state_KEY_MATRIX_ASTERISK, state_KEY_MATRIX_SHARP, state_KEY_MATRIX_NUM;
 #endif
@@ -14,6 +15,7 @@ Rotary rotVol = {ROT2_CLK,ROT2_DT};
 bool state_KEY_ROT_ROT2_DOWN, state_KEY_ROT_ROT2_UP;
 #endif
 
+/* Classic HW buttons */
 HardwareButton HwButtons[] = {
     #ifdef TUNE_ROTARY
     { KEY_ROT_ROT1_PUSH,EasyButton(ROT1_SW) },
@@ -36,6 +38,7 @@ HardwareButton HwButtons[] = {
     #endif
 };
 
+/* Matrix buttons */
 VirtualButton VirtButtonsMatrix[] = {
     #ifdef I2C_KEYPAD
     { KEY_MATRIX_A,EasyButtonVirtual(state_KEY_MATRIX_A) },
@@ -48,6 +51,7 @@ VirtualButton VirtButtonsMatrix[] = {
     #endif
 };
 
+/* Rotary encoders */
 VirtualButton VirtButtonsRotary[] = {
     #ifdef VOL_ROTARY
     { KEY_ROT_ROT1_DOWN,EasyButtonVirtual(state_KEY_ROT_ROT1_DOWN) },
@@ -60,6 +64,7 @@ VirtualButton VirtButtonsRotary[] = {
     #endif
 };
 
+/* Sizes of the arrays above */
 #if defined(TUNE_ROTARY) || defined(VOL_ROTARY) || defined(NAVI_BUTTONS) || defined(POWER_SWITCH)
 size_t HwButtonsSize = sizeof(HwButtons)/sizeof(HwButtons[0]);
 #else

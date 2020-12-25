@@ -1,5 +1,7 @@
 #include "dictionary.h"
 
+/* Look-Up-Tables */
+
 const char* sourceLUT[] = {
     "STANDBY",
     "FM",
@@ -30,13 +32,13 @@ const char* offOnLUT[] = {
     "On",
 };
 
-
 const char* rdsModeLUT[] = {
     "Only realible",
     "Smart",
     "DX"
 };
 
+/* ECC LUTs */
 const static Country eccCountries1[] = {
     {"United States", "US", 0xA0},
     {"Anguilla", "AI", 0xA2},

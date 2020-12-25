@@ -7,6 +7,7 @@ Skin skin;
 
 Gui::Gui() {}
 
+// Init screen
 void Gui::InitScreen() {
   if(TAKESEMAPHORE) {
     skin.InitScreen();
@@ -17,6 +18,7 @@ void Gui::InitScreen() {
   display = GUI_RADIOMAIN;
 }
 
+// Resets last values if needed, then sets display to main
 void Gui::ClearMain(bool clearLastValues) {
   if(TAKESEMAPHORE) {
     if (clearLastValues) {
@@ -33,12 +35,13 @@ void Gui::ClearMain(bool clearLastValues) {
     display = GUI_RADIOMAIN;
 
     skin.InitMain();
-    skin.DisplayRdsFlag(false,true);
+    skin.DisplayRdsFlag(false,true); 
           
     GIVESEMAPHORE;
   }
 }
 
+// Reset onscreen RDS informations
 void Gui::ClearRds() {
   DisplayRdsFlag(false);
   DisplayRdsPi(0,0,1);
@@ -47,6 +50,7 @@ void Gui::ClearRds() {
   DisplayRdsRt("");
 }
 
+// Restore last main screen (e.g. leave a menu, close a messagebox, etc.)
 void Gui::RestoreLast() {
   display = GUI_RADIOMAIN;
   if(TAKESEMAPHORE) {
@@ -63,6 +67,7 @@ void Gui::RestoreLast() {
   }
 }
 
+// GUI battery display 
 void Gui::DisplayBattery(uint8_t percentage) {
   if(TAKESEMAPHORE) {
     skin.DisplayBattery(percentage, lastBatteryPercentage);
@@ -72,6 +77,7 @@ void Gui::DisplayBattery(uint8_t percentage) {
   }
 }
 
+// GUI source + preset display 
 void Gui::DisplaySourcePreset(uint8_t source, uint8_t preset) {
   if(TAKESEMAPHORE) {
     skin.DisplaySourcePreset(sourceLUT[source], preset, sourceLUT[lastSource], lastPreset);
@@ -84,6 +90,7 @@ void Gui::DisplaySourcePreset(uint8_t source, uint8_t preset) {
   }
 }
 
+// GUI RDS flag display 
 void Gui::DisplayRdsFlag(bool rdsFlag) {
   if(TAKESEMAPHORE) {
     skin.DisplayRdsFlag(rdsFlag, lastRdsFlag);
@@ -93,6 +100,7 @@ void Gui::DisplayRdsFlag(bool rdsFlag) {
   }
 }
 
+// GUI signal display 
 void Gui::DisplaySignal(int8_t signalValue, int8_t signalMin, int8_t signalMax) {
   if(TAKESEMAPHORE) {
     skin.DisplaySignal(signalValue, signalMin, signalMax, lastSignalValue);
@@ -102,6 +110,7 @@ void Gui::DisplaySignal(int8_t signalValue, int8_t signalMin, int8_t signalMax) 
   }
 }
 
+// GUI frequency display + format and convert to string 
 void Gui::DisplayFreq(uint16_t freq) {
   if(TAKESEMAPHORE) {
     char buffer[7], unit[5];
@@ -124,6 +133,7 @@ void Gui::DisplayFreq(uint16_t freq) {
   }
 }
 
+// GUI RDS PI display + convert to string
 void Gui::DisplayRdsPi(uint16_t rdsPi, bool safe, bool forceClear) {
   if(TAKESEMAPHORE) {
     char buffer[5];
@@ -139,6 +149,9 @@ void Gui::DisplayRdsPi(uint16_t rdsPi, bool safe, bool forceClear) {
   }
 }
 
+// GUI RDS ECC display + convert to country string. 
+// rdsEcc: 8 bit ECC value
+// country: 4 bit masked from RDS PI (first hex digit)
 void Gui::DisplayRdsEcc(uint8_t rdsEcc, uint8_t country, bool forceClear) {
   if (TAKESEMAPHORE) {
     if (forceClear) {
@@ -146,9 +159,17 @@ void Gui::DisplayRdsEcc(uint8_t rdsEcc, uint8_t country, bool forceClear) {
       strcpy(lastRdsEcc, "");
     }
     else {
+      // Invalid PI country (0xxx) -> exit
+      if (!country) return;     
+      
+      // Search ECC country
       uint8_t i = 0;
-      while (eccLUT[country-1][i].Ecc < rdsEcc) i++;
+      uint8_t lutLength = sizeof(eccLUT[country-1])/sizeof(eccLUT[country-1][0]);
+      while (eccLUT[country-1][i].Ecc < rdsEcc && i < lutLength) i++;
+      
+      // Final check
       if (eccLUT[country-1][i].Ecc == rdsEcc) {
+        // Found: display country
         if (display == GUI_RADIOMAIN) skin.DisplayRdsEcc(eccLUT[country-1][i].Name, lastRdsEcc);
         strcpy(lastRdsEcc, eccLUT[country-1][i].Name);
       }
@@ -158,7 +179,9 @@ void Gui::DisplayRdsEcc(uint8_t rdsEcc, uint8_t country, bool forceClear) {
   }
 }
 
-
+// GUI RDS PS display 
+// rdsPs: RDS PS <3
+// safe: 1: RDS class reported as realible PS, 0: partial of unrealible PS (as reported from RDS class) OR cached PS 
 void Gui::DisplayRdsPs(const char* rdsPs, bool safe) {
   if(TAKESEMAPHORE) {
     if (display == GUI_RADIOMAIN) skin.DisplayRdsPs(rdsPs, safe, lastRdsPsIsSafe ? lastRdsPs : lastRdsPsUnstable, lastRdsPsIsSafe);
@@ -170,6 +193,8 @@ void Gui::DisplayRdsPs(const char* rdsPs, bool safe) {
   }
 }
 
+// GUI RDS RT display 
+// rdsRt: RDS RT (64 char)
 void Gui::DisplayRdsRt(const char* rdsRt) {
   if(TAKESEMAPHORE) {
     if (display == GUI_RADIOMAIN) skin.DisplayRdsRt(rdsRt, lastRdsRt);
@@ -180,6 +205,9 @@ void Gui::DisplayRdsRt(const char* rdsRt) {
 }
 
 /* ENTER FREQ SECTION */
+
+// GUI_ENTERFREQ mode
+// Displays enterfreq dialog, formats freq and unit 
 void Gui::DisplayEnterFreq(uint16_t freq, Sources source) {
   if(TAKESEMAPHORE) {
     char buffer[11];
@@ -208,6 +236,12 @@ void Gui::DisplayEnterFreq(uint16_t freq, Sources source) {
 }
 
 /* MESSAGEBOX SECTION */
+
+// GUI_MSGBOX mode
+// Displays messagebox
+// header: header text of msgbox
+// msg: content of msgbox
+// time: 0: show eternally, 0>: display time in sec
 void Gui::DisplayMsgBox(const char* header, const char* msg, uint8_t time) {
   if(TAKESEMAPHORE) {
     display = GUI_MSGBOX;
@@ -220,6 +254,13 @@ void Gui::DisplayMsgBox(const char* header, const char* msg, uint8_t time) {
   }
 }
 
+/* MENU SECTION */
+
+// GUI_MENU mode
+// Displays menu
+// items: array of menu items
+// itemcount: array length
+// selectedItem: highlighted item's index
 void Gui::DisplayMenu(MenuItem items[], uint8_t itemCount, uint8_t selectedItem) {
   if(TAKESEMAPHORE) {
     // Activate menu

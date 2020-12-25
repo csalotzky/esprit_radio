@@ -56,6 +56,7 @@ class Gui {
     int8_t lastBatteryPercentage = -1;
     int8_t lastSignalValue;
 
+    /* MENU */
     uint8_t menuFrom;
     uint8_t menuTo;
 };

@@ -2,13 +2,14 @@
 
 /* LAST SOURCE */
 
+// Saves current/last source - should be called before switch to another source or power off
 bool SaveLastSourceSPIFFS(Sources source) {
     // Load file
     File file = SPIFFS.open("/lastsource", FILE_WRITE);
 
     // File open error
     if (!file) {
-        Serial.println("ERROR | There was an error opening the file for writing");
+        Serial.println("SPIFFS | SaveLastSourceSPIFFS - There was an error opening the file for writing");
         return false;
     }
 
@@ -18,22 +19,22 @@ bool SaveLastSourceSPIFFS(Sources source) {
         
     // Write to file
     if (file.print(data)) {
-        Serial.println("File was written");
-        Serial.println(data);
+        Serial.println("SPIFFS | SaveLastSourceSPIFFS - File was written");
         file.close();
         return true;
     }
     else {
-        Serial.println("File write failed");
+        Serial.println("SPIFFS | SaveLastSourceSPIFFS - File write failed");
         file.close(); 
         return false;
     }
 }
 
+// Reads current/last source
 bool ReadLastSourceSPIFFS(Sources *source) {
     // Check if file exists
     if (!SPIFFS.exists("/lastsource")) {
-        Serial.println("File was not found");
+        Serial.println("SPIFFS | ReadLastSourceSPIFFS - File was not found");
         return false;
     }
 
@@ -42,7 +43,7 @@ bool ReadLastSourceSPIFFS(Sources *source) {
 
     // File open error    
     if (!file) {
-        Serial.println("There was an error opening the file for reading");
+        Serial.println("SPIFFS | ReadLastSourceSPIFFS - There was an error opening the file for reading");
         return false;
     }
 
@@ -50,15 +51,16 @@ bool ReadLastSourceSPIFFS(Sources *source) {
     char *buffer = (char*) malloc (file.size());
     file.readBytes(buffer,file.size());
     *source = static_cast<Sources>(atoi(buffer));
-    Serial.print("Parsed source: ");
-    Serial.println(*source);
  
+    Serial.println("SPIFFS | ReadLastSourceSPIFFS - File was read successfully");
+
     file.close();
     return true;
 }
 
 /* LAST STATION */
 
+// Saves last listened station of given source - should be called before switch to another source or power off
 bool SaveSourceLastStationSPIFFS(uint8_t preset, Station station) {
     // Save last source
     SaveLastSourceSPIFFS(station.Source);
@@ -68,8 +70,7 @@ bool SaveSourceLastStationSPIFFS(uint8_t preset, Station station) {
 
     // File open error
     if (!file) {
-        Serial.println(F("ERROR | There was an error opening the file for writing"));
-        //xSemaphoreGive(spiSemaphore);
+        Serial.println("SPIFFS | SaveSourceLastStationSPIFFS - There was an error opening the file for writing");
         return false;
     }
 
@@ -79,21 +80,22 @@ bool SaveSourceLastStationSPIFFS(uint8_t preset, Station station) {
     
     // Write to file
     if (file.print(data)) {
-        Serial.println("File was written");
+        Serial.println("SPIFFS | SaveSourceLastStationSPIFFS - File was written");
         file.close();
         return true;
     }
     else {
-        Serial.println("File write failed");
+        Serial.println("SPIFFS | SaveSourceLastStationSPIFFS - File write failed");
         file.close(); 
         return false;
     }
 }
 
+// Reads last listened station of give source
 bool ReadSourceLastStationSPIFFS(Sources source, uint8_t *preset, Station *station) {
     // Check if file exists
     if (!SPIFFS.exists(String("/") + sourceLUT[source])) {
-        Serial.println("File was not found");
+        Serial.println("SPIFFS | ReadSourceLastStationSPIFFS - File was not found");
         //xSemaphoreGive(spiSemaphore);
         return false;
     }
@@ -103,7 +105,7 @@ bool ReadSourceLastStationSPIFFS(Sources source, uint8_t *preset, Station *stati
 
     // File open error    
     if (!file) {
-        Serial.println("There was an error opening the file for reading");
+        Serial.println("SPIFFS | ReadSourceLastStationSPIFFS - There was an error opening the file for reading");
         //xSemaphoreGive(spiSemaphore);
         return false;
     }
@@ -124,21 +126,23 @@ bool ReadSourceLastStationSPIFFS(Sources source, uint8_t *preset, Station *stati
     strcpy(station->RdsPs, strsep(&p, ","));
     strcpy(station->WebName, strsep(&p, ","));
     strcpy(station->WebUuid, strsep(&p, ","));
+    
+    Serial.println("SPIFFS | ReadSourceLastStationSPIFFS - File was read successfully");
 
-    // Parse from char array - NOT WORKING
-    //sscanf(buffer,"%d,%d,%d,%d,%s,%s,%s,", preset, &station->Frequency, &station->RdsPi, &station->RdsEcc, &station->RdsPs, &station->WebName, &station->WebUuid);
-       
     file.close();
     return true;
 }
 
+/* CONFIG */
+
+// Saves config
 bool SaveConfigSPIFFS(Config config) {
     // Load file
     File file = SPIFFS.open("/config", FILE_WRITE);
 
     // File open error
     if (!file) {
-        Serial.println("ERROR | There was an error opening the file for writing");
+        Serial.println("SPIFFS | SaveConfigSPIFFS - There was an error opening the file for writing");
         return false;
     }
 
@@ -154,32 +158,30 @@ bool SaveConfigSPIFFS(Config config) {
         config.SeekLevel,
         config.SeekUsn,
         config.IsNumKeyDefaultPreset);
-    for (size_t i = 0; i < TOTAL_BUTTONS; i++)
-    {
+    for (size_t i = 0; i < TOTAL_BUTTONS; i++) {
         char keyBuffer[10];
         sprintf(keyBuffer,"%d,%d,%d;",config.KeyMaps[i].Key, config.KeyMaps[i].LongPress, config.KeyMaps[i].CmdIndex);
         strcat(buffer,keyBuffer);
     }
-
-    Serial.println(buffer);
     
     // Write to file
     if (file.print(buffer)) {
-        Serial.println("File was written");
+        Serial.println("SPIFFS | SaveConfigSPIFFS - File was written");
         file.close();
         return true;
     }
     else {
-        Serial.println("File write failed");
+        Serial.println("SPIFFS | SaveConfigSPIFFS - File write failed");
         file.close(); 
         return false;
     }
 }
 
+// Reads config
 bool ReadConfigSPIFFS(Config *config) {
     // Check if file exists
     if (!SPIFFS.exists("/config")) {
-        Serial.println("File was not found");
+        Serial.println("SPIFFS | ReadConfigSPIFFS - File was not found");
         return false;
     }
 
@@ -188,7 +190,7 @@ bool ReadConfigSPIFFS(Config *config) {
 
     // File open error    
     if (!file) {
-        Serial.println("There was an error opening the file for reading");
+        Serial.println("SPIFFS | ReadConfigSPIFFS - There was an error opening the file for reading");
         return false;
     }
 
@@ -213,11 +215,15 @@ bool ReadConfigSPIFFS(Config *config) {
         else if (!strcmp(paramBuffer, "KEYMAPS")) ParseKeyMaps(valueBuffer, config->KeyMaps, TOTAL_BUTTONS);
     }
 
+    Serial.println("SPIFFS | ReadConfigSPIFFS - File was read successfully");
+
     file.close();
     return true;
 }
 
 /* PRESET */
+
+// Save given station to given preset
 bool SavePresetSPIFFS(Station station, uint8_t preset) {
     // Get current presets
     Station presets[TOTAL_PRESETS];
@@ -229,7 +235,7 @@ bool SavePresetSPIFFS(Station station, uint8_t preset) {
 
     // File open error
     if (!file) {
-        Serial.println("ERROR | There was an error opening the file for writing");
+        Serial.println("SPIFFS | SavePresetSPIFFS - There was an error opening the file for writing");
         return false;
     }
 
@@ -243,10 +249,11 @@ bool SavePresetSPIFFS(Station station, uint8_t preset) {
     return true;
 }
 
+// Reads preset by preset number (indexed from 1!)
 bool ReadPresetByNumberSPIFFS(Station *station, uint8_t preset) {
     // Check if file exists
     if (!SPIFFS.exists("/presets")) {
-        Serial.println("File was not found");
+        Serial.println("SPIFFS | ReadPresetByNumberSPIFFS - File was not found");
         return false;
     }
 
@@ -255,7 +262,7 @@ bool ReadPresetByNumberSPIFFS(Station *station, uint8_t preset) {
 
     // File open error    
     if (!file) {
-        Serial.println("There was an error opening the file for reading");
+        Serial.println("SPIFFS | ReadPresetByNumberSPIFFS - There was an error opening the file for reading");
         return false;
     }
 
@@ -269,14 +276,17 @@ bool ReadPresetByNumberSPIFFS(Station *station, uint8_t preset) {
     data[l] = 0;
     ParseStation(data, station);
     
+    Serial.println("SPIFFS | ReadPresetByNumberSPIFFS - File was read successfully");
+
     file.close();
     return station->Frequency;
 }
 
+// Search preset by RDS PI
 bool ReadPresetByPiSPIFFS(Station *station, uint8_t *preset, uint16_t pi) {
     // Check if file exists
     if (!SPIFFS.exists("/presets")) {
-        Serial.println("File was not found");
+        Serial.println("SPIFFS | ReadPresetByPiSPIFFS - File was not found");
         return false;
     }
 
@@ -285,7 +295,7 @@ bool ReadPresetByPiSPIFFS(Station *station, uint8_t *preset, uint16_t pi) {
 
     // File open error    
     if (!file) {
-        Serial.println("There was an error opening the file for reading");
+        Serial.println("SPIFFS | ReadPresetByPiSPIFFS - There was an error opening the file for reading");
         return false;
     }
 
@@ -301,14 +311,17 @@ bool ReadPresetByPiSPIFFS(Station *station, uint8_t *preset, uint16_t pi) {
 
     }
     
+    Serial.println("SPIFFS | ReadPresetByPiSPIFFS - File was read successfully");
+
     file.close();
     return station->RdsPi == pi;
 }
 
+// Gets all presets
 bool ReadAllPresetsSPIFFS(Station stations[]) {
     // Check if file exists
     if (!SPIFFS.exists("/presets")) {
-        Serial.println("File was not found");
+        Serial.println("SPIFFS | ReadAllPresetsSPIFFS - File was not found");
         return false;
     }
 
@@ -317,25 +330,21 @@ bool ReadAllPresetsSPIFFS(Station stations[]) {
 
     // File open error    
     if (!file) {
-        Serial.println("There was an error opening the file for reading");
+        Serial.println("SPIFFS | ReadAllPresetsSPIFFS - There was an error opening the file for reading");
         return false;
     }
 
     // Create buffer
     char data[3+1+5+1+4+1+2+1+8+1+32+1+32+1];
     uint8_t i=0;
-    Serial.println("---/presets content---");
     while (file.available() && i<TOTAL_PRESETS) {
         int l = file.readBytesUntil('\n', data, sizeof(data));
         data[l] = 0;
-                Serial.println(data);
-
         ParseStation(data, &stations[i]);
-        //Serial.println(stations[i].Frequency);
         i++;    
     }
-    Serial.println("---/presets end---");
 
+    Serial.println("SPIFFS | ReadAllPresetsSPIFFS - File was read successfully");
 
     file.close();
     return true;
@@ -346,8 +355,7 @@ bool ReadAllPresetsSPIFFS(Station stations[]) {
 void ParseKeyMaps(char *input, KeyMap keymap[], uint8_t mapLength) {
     uint8_t i=0;
     char *p = input;
-    while (i<mapLength && p[0]!='\0')
-    {
+    while (i<mapLength && p[0]!='\0') {
         keymap[i].Key = atoi(strsep(&p, ","));
         keymap[i].LongPress = atoi(strsep(&p, ","));
         keymap[i].CmdIndex = atoi(strsep(&p, ";"));
@@ -356,8 +364,6 @@ void ParseKeyMaps(char *input, KeyMap keymap[], uint8_t mapLength) {
 }
 
 void ParseStation(char *input, Station *station) {
-    // Parse from char array
-    //char *strsep(char **sp, const char *sep);
     char *p = input;
 
     station->Source = static_cast<Sources>(atoi(strsep(&p, ",")));

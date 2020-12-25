@@ -4,16 +4,18 @@
 #include "dictionary.h"
 #include "Arduino.h"
 
-#define TOTAL_PRESETS       20
-#define TOTAL_BUTTONS       56
-#define DEFAULT_RDSMODE     RDS_MIXED
-#define DEFAULT_REGION      0
-#define DEFAULT_ISMINSTEP   0
-#define DEFAULT_ISSTEREO    1
-#define DEFAULT_SEEKLEVEL   30
-#define DEFAULT_SEEKUSN     10
-#define DEFAULT_ISRDSAF     1
+#define TOTAL_PRESETS       20          // Total station presets
+#define TOTAL_BUTTONS       56          // Maximum configurable buttons in keymap function (physical buttons * 2 <= since every button has two states (short and long press))
+#define DEFAULT_RDSPIMODE   RDS_MIXED   // Default RDS PI decode strategy 
+#define DEFAULT_RDSPSMODE   RDS_MIXED   // Default RDS PS decode strategy 
+#define DEFAULT_REGION      0           // Default region (array index)
+#define DEFAULT_ISMINSTEP   0           // Default tune step (bool)
+#define DEFAULT_ISSTEREO    1           // Default audio mode (bool)
+#define DEFAULT_SEEKLEVEL   30          // Default seek signal threshold (dBuV)
+#define DEFAULT_SEEKUSN     10          // Default seek usn threshold (%)
+#define DEFAULT_ISRDSAF     1           // Default RDS AF mode (bool)
 
+// Default keymap
 #define DEFAULT_KEYMAP      {\
                             {KEY_ROT_ROT1_DOWN,0,15},\
                             {KEY_ROT_ROT1_UP,0,14},\
@@ -37,16 +39,25 @@
                             {KEY_MATRIX_D,0,0},\
                             }               
 
-#define DEFAULT_KEY_POWER   KEY_ROT_ROT1_PUSH
-#define DEFAULT_KEY_OK      KEY_ROT_ROT2_PUSH
+// Hardcoded keys - these buttons's short press event could not be assigned in keymap feature
+#define DEFAULT_KEY_PWR_TGL KEY_POWER_SWITCH
+#define DEFAULT_KEY_PWR_BTN -1
+#define DEFAULT_KEY_OK      KEY_NAVI_OK   
+#define DEFAULT_KEY_BACK    -1   
+#define DEFAULT_KEY_LEFT    KEY_NAVI_LEFT   
+#define DEFAULT_KEY_RIGHT   KEY_NAVI_RIGHT   
+#define DEFAULT_KEY_UP      KEY_NAVI_UP
+#define DEFAULT_KEY_DOWN    KEY_NAVI_DOWN   
 
+// Function pointers used in menu struct
 typedef void (*pCommandFn)();
 typedef void (*pCommandFnInt)(uint8_t);
 typedef void (*pCommandFnPtrInt)(uint8_t*, uint8_t);
 
+// Available hardware buttons
 enum Keys {
     KEY_POWER_BTN=1,
-    KEY_POWER_SWITCH=1,
+    KEY_POWER_SWITCH,
     KEY_ROT_ROT1_DOWN,
     KEY_ROT_ROT1_UP,
     KEY_ROT_ROT1_PUSH,
@@ -79,6 +90,7 @@ enum Keys {
     KEY_MATRIX_D,
 };
 
+/* ENUMS */
 enum Sources {
     SOURCE_STANDBY,
     SOURCE_FM,
@@ -121,7 +133,9 @@ enum SeekSates {
     SEEK_UP = 1
 };
 
-struct Region {
+/* STRUCTS */
+// TODO: OIRT steps
+const struct {
     char Name[7];
     uint16_t FmMin;
     uint16_t FmMax;
@@ -139,6 +153,13 @@ struct Region {
     uint16_t SwMax;
     uint8_t SwMinStep;
     uint8_t SwMaxStep;
+} Regions[] = {
+    //  Reg. name   FM range        FM steps    LW range    LW steps    MW range    MW steps    SW steps        SW range    
+    {"DX",          6500, 10800,    1, 10,      153, 521,   1, 9,       522, 2299,  1, 9,       2300, 27000,    1, 5},
+    {"DX USA",      6500, 10800,    1, 10,      150, 519,   1, 10,      520, 2299,  1, 10,      2300, 27000,    1, 5},
+    {"EUR",         8750, 10800,    5, 10,      153, 279,   1, 9,       522, 1701,  1, 9,       2300, 27000,    1, 5},
+    {"USA",         8750, 10800,    10, 20,     153, 279,   1, 9,       520, 1700,  1, 9,       2300, 27000,    1, 5},
+    {"JPN",         7600, 9000,     1, 10,      153, 279,   1, 9,       522, 1701,  1, 9,       2300, 27000,    1, 5},
 };
 
 struct Station {
@@ -158,8 +179,8 @@ struct KeyMap {
 };
 
 struct Config {
-    RdsModes PsMode = DEFAULT_RDSMODE;
-    RdsModes PiMode = DEFAULT_RDSMODE;
+    RdsModes PsMode = DEFAULT_RDSPSMODE;
+    RdsModes PiMode = DEFAULT_RDSPIMODE;
     uint8_t Region = DEFAULT_REGION;
     bool IsMinStep = DEFAULT_ISMINSTEP;
     bool IsStereo = DEFAULT_ISSTEREO;
@@ -169,10 +190,8 @@ struct Config {
 
     KeyMap KeyMaps[TOTAL_BUTTONS*2] = DEFAULT_KEYMAP;
     bool IsNumKeyDefaultPreset = true;
-
 };
 
-/* MENU */
 struct MenuItem {
   const char *Name;
   bool IsChecked;
@@ -185,15 +204,6 @@ struct MenuItem {
 
   uint8_t FnParameter;
   uint8_t *FnVarPtr; 
-};
-
-const Region Regions[] = {
-    //  Reg. name   FM range        FM steps    LW range    LW steps    MW range    MW steps    SW steps        SW range    
-    {"DX",          6500, 10800,    1, 10,      153, 521,   1, 9,       522, 2299,  1, 9,       2300, 27000,    1, 5},
-    {"DX USA",      6500, 10800,    1, 10,      150, 519,   1, 10,      520, 2299,  1, 10,      2300, 27000,    1, 5},
-    {"EUR",         8750, 10800,    5, 10,      153, 279,   1, 9,       522, 1701,  1, 9,       2300, 27000,    1, 5},
-    {"USA",         8750, 10800,    10, 20,     153, 279,   1, 9,       520, 1700,  1, 9,       2300, 27000,    1, 5},
-    {"JPN",         7600, 9000,     1, 10,      153, 279,   1, 9,       522, 1701,  1, 9,       2300, 27000,    1, 5},
 };
 
 #endif

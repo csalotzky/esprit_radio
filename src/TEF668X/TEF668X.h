@@ -115,7 +115,6 @@ typedef enum
 	TEF665X_Cmd_Get_LastWrite = 131
 } TEF668x_APPL_COMMAND;
 
-
 /* STRUCTS*/
 struct QualityData {
     bool Status;
@@ -125,6 +124,7 @@ struct QualityData {
     uint8_t Modulation;
     uint8_t Usn;
 };
+
 struct RdsStatus {
     bool IsDataAvailable;
     bool IsDataLoss;
@@ -132,6 +132,7 @@ struct RdsStatus {
     bool IsGroupB;
     bool IsSync;
 };
+
 struct RdsData {
     bool DataAvailable;
     uint16_t BlockA;
@@ -156,7 +157,7 @@ bool GetQuality(bool fm, QualityData *result);
 bool GetRdsStatus(RdsStatus *result);
 bool GetRdsData(RdsData *result);
 
-/* I2C wrapper - SEMAPHORE*/
+/* I2C wrapper - SEMAPHORE */
 int TunerSetCmd(TEF668x_MODULE module, uint8_t cmd, int len,...);
 int TunerGetCmd(TEF668x_MODULE module, uint8_t cmd, uint8_t *receive,int len);
 

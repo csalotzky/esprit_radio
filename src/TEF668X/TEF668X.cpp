@@ -2,14 +2,12 @@
 
 #define High_16bto8b(a)	((uint8_t)((a) >> 8))
 #define Low_16bto8b(a) 	((uint8_t)(a )) 
-
 #define Convert8bto16b(a)	((uint16_t)(((uint16_t)(*(a))) << 8 |((uint16_t)(*(a+1)))))
-
 #define TAB_NUM(tab)	(sizeof(tab)/sizeof(tab[0]))
 
 #define SEMAPHORE_MAX_ATTEMPT   50
 
-
+// Tuner setup function, returns true if tuner has started
 bool Boot() {
     uint8_t status, i=0;
     InitI2C();
@@ -26,11 +24,11 @@ bool Boot() {
     }  
     
     if (status > 1) {
-        Serial.println("WARNING | Tuner is already in active state!");
+        Serial.println("BOOT | WARNING: Tuner is already in active state!");
         return true;
     }
     
-    Serial.println("INFO | Boot process has started");
+    Serial.println("BOOT | INFO: Boot process has started");
     Tuner_Init();
     
     // Final check
@@ -38,11 +36,13 @@ bool Boot() {
     return status;
 }
 
+
+// Aka. set operation mode
 bool SwitchOnOff(bool on) {
 	return TunerSetCmd(TEF665X_MODULE_APPL,
-			TEF665X_Cmd_Set_OperationMode, 
-			5,
-			on ? 0 : 1);
+        TEF665X_Cmd_Set_OperationMode, 
+        5,
+        on ? 0 : 1);
 }
 
 /* 
@@ -103,7 +103,7 @@ uint8_t GetOperationStatus(uint8_t *status) {
 	return r;
 }
 
-
+// Get quality status
 bool GetQuality(bool fm, QualityData *result) {
 	uint8_t buf[14];
 	int r;
@@ -130,6 +130,7 @@ bool GetQuality(bool fm, QualityData *result) {
 	return r == 1;
 }
 
+// Get RDS status
 bool GetRdsStatus(RdsStatus *result) {
     uint8_t buf[2];
 	int r;
@@ -150,6 +151,7 @@ bool GetRdsStatus(RdsStatus *result) {
 	return r;
 }
 
+// Get RDS data 
 bool GetRdsData(RdsData *result) {
     uint8_t buf[12];
 	int r;
@@ -175,18 +177,15 @@ bool GetRdsData(RdsData *result) {
 }
 
 /* I2C commands wrapper */
+// Universal I2C set wrapper
 int TunerSetCmd(TEF668x_MODULE module, uint8_t cmd, int len,...)
 {
     bool success = false;
     if(i2cSemaphore != NULL ) {
         uint8_t attempt = 0;
         while (xSemaphoreTake(i2cSemaphore, ( TickType_t ) 100 ) != pdTRUE && attempt != SEMAPHORE_MAX_ATTEMPT) attempt++;
-        //Serial.print(" {");
-        //Serial.print(attempt);
-        //Serial.print("} ");
+        
         if(attempt!=SEMAPHORE_MAX_ATTEMPT) {
-            //Serial.print(" s1 ");
-
             int i;
             uint8_t buf[20];
             uint16_t temp;
@@ -194,9 +193,9 @@ int TunerSetCmd(TEF668x_MODULE module, uint8_t cmd, int len,...)
 
                 va_start(vArgs, len);
                 
-            buf[0]= module;			//module,		FM/AM/APP
-            buf[1]= cmd;		//cmd,		1,2,10,... 
-            buf[2]= 1;	//index, 		always 1
+            buf[0]= module;	//module,		FM/AM/APP
+            buf[1]= cmd;	//cmd,		    1,2,10,... 
+            buf[2]= 1;	    //index, 		always 1
 
             //fill buffer with 16bits one by one
             for(i=3;i<len;i++)
@@ -208,59 +207,49 @@ int TunerSetCmd(TEF668x_MODULE module, uint8_t cmd, int len,...)
             }
             
             va_end(vArgs);
-            //Serial.print(" s2 ");
 
             success = TunerBufferWrite(buf, len) == 1;
-            //        Serial.print(" s3 ");
 
             xSemaphoreGive(i2cSemaphore);
-
         }
         else {
-            Serial.println("TEF668X | Didn't get semaphore!");
+            Serial.println("FREERTOS | Didn't get semaphore!");
         }
     }
     else {
-        Serial.println("NULL");
+        Serial.println("FREERTOS | Semaphore is null!");
     }
 
     return success;
 }
 
-
+// Universal I2C get command
 int TunerGetCmd(TEF668x_MODULE module, uint8_t cmd, uint8_t *receive,int len)
 {
     bool success = false;
     if(i2cSemaphore != NULL ) {
         uint8_t attempt = 0;
         while (xSemaphoreTake(i2cSemaphore, ( TickType_t ) 100 ) != pdTRUE && attempt != SEMAPHORE_MAX_ATTEMPT) attempt++;
-        //Serial.print(" <");
-        //Serial.print(attempt);
-        //Serial.print("> ");
 
         if(attempt!=SEMAPHORE_MAX_ATTEMPT) {
-            //        Serial.print(" g1 ");
-
             uint8_t buf[3];
 
-            buf[0]= module;			//module,		FM/AM/APP
-            buf[1]= cmd;		//cmd,		1,2,10,... 
-            buf[2]= 1;	//index, 		always 1
+            buf[0]= module;	//module,		FM/AM/APP
+            buf[1]= cmd;	//cmd,		    1,2,10,... 
+            buf[2]= 1;	    //index, 		always 1
 
             success = TunerBufferWrite(buf, 3) == 1;
-            //        Serial.print(" g2 ");
 
             if (success) success = TunerBufferRead(receive,len) == 1;
-            //        Serial.print(" g3 ");
 
             xSemaphoreGive(i2cSemaphore);
         }
         else {
-            Serial.println("FREERTOS | Didn't get semaphore :(");
+            Serial.println("FREERTOS | Didn't get semaphore!");
         }
     }
     else {
-        Serial.println("FREETOS | Semaphore is NULL");
+        Serial.println("FREERTOS | Semaphore is null!");
     }
 
     return success;

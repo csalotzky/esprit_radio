@@ -180,21 +180,25 @@ void InputsInit(Gui *gui, Radio *radio){
     }
 
     // Hardcoded keys
+    // todoooo
     VirtButtonsMatrix[VirtButtonsMatrixSize-1].Btn.onPressed(ShortNumCallback);
     VirtButtonsMatrix[VirtButtonsMatrixSize-1].Btn.onPressedFor(1000,LongNumCallback);
     for (size_t i = 0; i < HwButtonsSize; i++) {
-        if (HwButtons[i].KeyId == KEY_NAVI_OK) HwButtons[i].Btn.onPressed(Ok);
-        if (HwButtons[i].KeyId == KEY_NAVI_LEFT) HwButtons[i].Btn.onPressed(MenuLeft);
-        if (HwButtons[i].KeyId == KEY_NAVI_RIGHT) HwButtons[i].Btn.onPressed(MenuRight);
-        if (HwButtons[i].KeyId == KEY_NAVI_UP) HwButtons[i].Btn.onPressed(MenuUp);
-        if (HwButtons[i].KeyId == KEY_NAVI_DOWN) HwButtons[i].Btn.onPressed(MenuDown);
-        if (HwButtons[i].KeyId == KEY_POWER_SWITCH) HwButtons[i].Btn.onPressedFor(100,PowerOff);
+        if (HwButtons[i].KeyId == DEFAULT_KEY_OK) HwButtons[i].Btn.onPressed(Ok);
+        if (HwButtons[i].KeyId == DEFAULT_KEY_BACK) HwButtons[i].Btn.onPressed(Back);
+        if (HwButtons[i].KeyId == DEFAULT_KEY_LEFT) HwButtons[i].Btn.onPressed(MenuLeft);
+        if (HwButtons[i].KeyId == DEFAULT_KEY_RIGHT) HwButtons[i].Btn.onPressed(MenuRight);
+        if (HwButtons[i].KeyId == DEFAULT_KEY_UP) HwButtons[i].Btn.onPressed(MenuUp);
+        if (HwButtons[i].KeyId == DEFAULT_KEY_DOWN) HwButtons[i].Btn.onPressed(MenuDown);
+        if (HwButtons[i].KeyId == DEFAULT_KEY_PWR_TGL) HwButtons[i].Btn.onPressedFor(100,PowerOff);
+        if (HwButtons[i].KeyId == DEFAULT_KEY_PWR_BTN) HwButtons[i].Btn.onPressed(PowerSwitch);
     }
 
     for (size_t i = 0; i < HwButtonsSize; i++)
     {
         HwButtons[i].Btn.begin();
         delay(5);
+        // EasyButton bug, todo(?)
         HwButtons[i].Btn.begin();
     }
 

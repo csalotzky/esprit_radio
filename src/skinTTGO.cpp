@@ -3,6 +3,7 @@
 #define SCREEN_WIDTH    240
 #define SCREEN_HEIGHT   135
 
+/* MAIN */
 #define HEADER_BG       0x0
 #define MAIN_BG         0x0165
 #define TXT_MAIN        0xffff
@@ -11,20 +12,24 @@
 
 #define HEADER_HEIGHT   20
 
+/* BATTERY */
 #define BATT_X          4
 #define BATT_Y          4
 #define BATT_WIDTH      25
 #define BATT_HEIGHT     12
 #define BATT_SPACING    2
 
+/* PRESET+BAND */
 #define PRESET_X        40
 #define PRESET_Y        2
 
+/* RDS LOGO */
 #define RDS_X           90
 #define RDS_Y           0
 #define RDS_WIDTH       60
 #define RDS_HEIGHT      16
 
+/* SIGNAL BARS */
 #define SIG_X           170
 #define SIG_Y           2
 #define SIG_BARS        5
@@ -32,28 +37,35 @@
 #define SIG_BARHEIGHT   15
 #define SIG_BARSPACING  2
 
+/* FREQUENCY */
 #define FREQ_X          5
 #define FREQ_Y          30
 #define DISPLAY_UNIT    0
 
+/* PI CODE */
 #define PI_X            165
 #define PI_Y            30
 
+/* ECC COUNTRY LABEL */
 #define COUNTRY_X       PI_X
 #define COUNTRY_Y       PI_Y+23
 
+/* PROGRAM SERVICE */
 #define PS_X            2
 #define PS_Y            95
 
+/* RADIOTEXT */
 #define RT_X            2
 #define RT_Y            60
 #define RT_LINES        2
 
+/* MESSAGEBOX */
 #define MSGBOX_X        10
 #define MSGBOX_Y        HEADER_HEIGHT+10
 #define MSGBOX_WIDTH    SCREEN_WIDTH-(2*MSGBOX_X)
 #define MSGBOX_HEIGHT   SCREEN_HEIGHT-(HEADER_HEIGHT+2*10)
 
+/* MENU */
 #define MENU_TXT_X      10
 #define MENU_TXT_Y      4
 #define MENU_CHECK_X    210
@@ -64,6 +76,7 @@ TFT_eSPI tft = TFT_eSPI(SCREEN_HEIGHT, SCREEN_WIDTH); // Invoke custom library
 
 Skin::Skin() {}
 
+// Init tft module
 void Skin::InitScreen() {
   tft.init();
   tft.setRotation(1);
@@ -73,11 +86,13 @@ void Skin::InitScreen() {
   InitMain();
 }
 
+// Display (init or clear) main screen
 void Skin::InitMain() {
   tft.fillRect(0,HEADER_HEIGHT,SCREEN_WIDTH,SCREEN_HEIGHT-HEADER_HEIGHT,MAIN_BG);
   tft.drawLine(0,HEADER_HEIGHT,SCREEN_WIDTH,HEADER_HEIGHT,TFT_WHITE);
 }
 
+// Display battery level
 void Skin::DisplayBattery(int8_t currentPercentage, int8_t lastPercentage) {
   // No change -> no action
   if (currentPercentage == lastPercentage) return;
@@ -99,6 +114,7 @@ void Skin::DisplayBattery(int8_t currentPercentage, int8_t lastPercentage) {
   tft.fillRect(BATT_X+BATT_SPACING,BATT_Y+BATT_SPACING,(BATT_WIDTH-(2*BATT_SPACING))*currentPercentage*0.01,BATT_HEIGHT-(2*BATT_SPACING),battColor);
 }
 
+// Display source + preset
 void Skin::DisplaySourcePreset(const char* currentSource, uint8_t currentPreset, const char* lastSource, uint8_t lastPreset) {
   // No change -> no action
   if (strcmp(currentSource, lastSource) == 0 && currentPreset == lastPreset) return;
@@ -121,6 +137,7 @@ void Skin::DisplaySourcePreset(const char* currentSource, uint8_t currentPreset,
   tft.drawString(newStr,PRESET_X,PRESET_Y,2);
 }
 
+// Display RDS flag
 void Skin::DisplayRdsFlag(bool currentRdsFlag, bool lastRdsFlag) {
   // No change -> no action
   if (currentRdsFlag == lastRdsFlag) return;
@@ -130,6 +147,7 @@ void Skin::DisplayRdsFlag(bool currentRdsFlag, bool lastRdsFlag) {
   else tft.fillRect(RDS_X,RDS_Y,RDS_WIDTH,RDS_HEIGHT,HEADER_BG);
 }
 
+// Display signal level
 void Skin::DisplaySignal(int8_t currentSignalValue, int8_t signalMin, int8_t signalMax, int8_t lastSignalValue){
   // No change -> no action
   if (currentSignalValue == lastSignalValue) return;
@@ -162,6 +180,7 @@ void Skin::DisplaySignal(int8_t currentSignalValue, int8_t signalMin, int8_t sig
   tft.drawNumber(currentSignalValue < 0 ? 0 : currentSignalValue > 99 ? 99 : currentSignalValue, SIG_X+((SIG_BARS+1)*(SIG_BARWIDTH+SIG_BARSPACING))+SIG_BARWIDTH, SIG_Y);
 }
 
+// Display frequency
 void Skin::DisplayFreq(const char* currentFrequency, const char* freqUnit, const char* lastFrequency) {
   /* FREQUENCY */
   tft.setTextSize(4);
@@ -224,16 +243,11 @@ void Skin::DisplayFreq(const char* currentFrequency, const char* freqUnit, const
   }
 }
 
+// Display PI code
 void Skin::DisplayRdsPi(const char* currentRdsPi, bool currentSafe, const char* lastRdsPi, bool lastSafe) {
   // No change -> no action
   if (strcmp(currentRdsPi, lastRdsPi) == 0 && currentSafe == lastSafe) return;
   
-  /*Serial.print("new PI:");
-  Serial.print(currentRdsPi);
-  Serial.print(" (stable:");
-  Serial.print(currentSafe);
-  Serial.println(")");
-*/
   /* PI */
   tft.setTextSize(3);
   // Clear prev
@@ -246,6 +260,7 @@ void Skin::DisplayRdsPi(const char* currentRdsPi, bool currentSafe, const char* 
 
 }
 
+// Display country label
 void Skin::DisplayRdsEcc(const char* currentCountry, const char* lastCountry) {
   // No change -> no action
   if(strcmp(currentCountry, lastCountry) == 0) return;
@@ -261,6 +276,7 @@ void Skin::DisplayRdsEcc(const char* currentCountry, const char* lastCountry) {
   for (size_t i = 0; currentCountry[i] != '\0'; ++i) tft.drawChar(toUpperCase(currentCountry[i]), COUNTRY_X+i*6, COUNTRY_Y);
 }
 
+// Display PS
 void Skin::DisplayRdsPs(const char* currentRdsPs, bool currentSafe, const char* lastRdsPs, bool lastSafe) {
   // No change -> no action
   if (strcmp(currentRdsPs, lastRdsPs) == 0 && currentSafe == lastSafe) return;
@@ -276,6 +292,7 @@ void Skin::DisplayRdsPs(const char* currentRdsPs, bool currentSafe, const char* 
   tft.drawString(currentRdsPs, PS_X, PS_Y);
 }
 
+// Display RT
 void Skin::DisplayRdsRt(const char* currentRdsRt, const char* lastRdsRt) {
   // No change -> no action
   if (strcmp(currentRdsRt, lastRdsRt) == 0) return;
@@ -291,8 +308,8 @@ void Skin::DisplayRdsRt(const char* currentRdsRt, const char* lastRdsRt) {
   char word[64];
   unsigned wordLength;
   char lines[RT_LINES][40];
-  strcpy(lines[0], "");
-  strcpy(lines[1], "");
+  for (size_t i = 0; i < RT_LINES; i++) strcpy(lines[i], "");
+  
   uint8_t lineIndex = 0;
 
   while(sscanf(currentRdsRt, " %29s%n", word, &wordLength) == 1) {
@@ -321,6 +338,7 @@ void Skin::DisplayRdsRt(const char* currentRdsRt, const char* lastRdsRt) {
   }
 }
 
+// Display enter frequency dialog
 void Skin::DisplayEnterFreq(const char* header, const char* freqString, bool drawFrame) {
   if (drawFrame) {
     tft.fillRoundRect(MSGBOX_X+2,MSGBOX_Y+2,MSGBOX_WIDTH+2,MSGBOX_HEIGHT+2,10,TFT_BLACK);
@@ -351,6 +369,7 @@ void Skin::DisplayMsgBox(const char* header, const char* text, uint8_t headerFon
   tft.drawString(text,MSGBOX_X+10,MSGBOX_Y+50,textFont);
 }
 
+// Display menu
 void Skin::DisplayMenu(char* items[], uint8_t itemCount, uint8_t selectedItem, bool tickedItems[], uint8_t itemsFrom, uint8_t itemsTo) {
   InitMain();
   tft.setTextSize(1);
@@ -401,5 +420,4 @@ void Skin::DisplayMenu(char* items[], uint8_t itemCount, uint8_t selectedItem, b
       }
     }
   }
-  
 }

@@ -5,6 +5,7 @@
 #include "radio.h"
 #include "definitions.h"
 #include "filetasks.h"
+#include "device.h"
 
 void InterfaceInit(Gui *gui, Radio *radio);
 

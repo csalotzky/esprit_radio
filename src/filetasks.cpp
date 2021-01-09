@@ -307,8 +307,6 @@ bool ReadPresetByPiSPIFFS(Station *station, uint8_t *preset, uint16_t pi) {
         data[l] = 0;
         ParseStation(data, station);
         (*preset)++;
-        Serial.println(*preset);
-
     }
     
     Serial.println("SPIFFS | ReadPresetByPiSPIFFS - File was read successfully");

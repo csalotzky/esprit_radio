@@ -424,7 +424,7 @@ void Rds::ProcessRtA(uint16_t block2A_B, uint16_t block2A_C, uint16_t block2A_D,
 }
 
 void Rds::ProcessRtB(uint16_t block2B_B, uint16_t block2B_D, uint8_t error2B_BD) {
-    Serial.println("RT B!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");    
+
 }
 
 void Rds::ProcessAf(uint16_t block0A_C, uint8_t error0A_C) {

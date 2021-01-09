@@ -1,4 +1,4 @@
-#include <FS.h> //this needs to be first, or it all crashes and burns...
+#include <FS.h>
 #include "tasks.h"
 #include "WiFi.h"
 #include <Wire.h>
@@ -72,7 +72,7 @@ void setup() {
     Serial.println();
 
     /* DEEP SLEEP CONFIG */
-    esp_sleep_enable_ext0_wakeup(GPIO_NUM_27,1); //1 = High, 0 = Low
+    esp_sleep_enable_ext0_wakeup(GPIO_NUM_27,1);
   
     /* MOUNT SPIFFS */
     if(!SPIFFS.begin(true)) Serial.println("SPIFFS | An Error has occurred while mounting SPIFFS");  

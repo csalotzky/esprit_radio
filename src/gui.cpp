@@ -114,8 +114,6 @@ void Gui::DisplaySignal(int8_t signalValue, int8_t signalMin, int8_t signalMax) 
 void Gui::DisplayFreq(uint16_t freq) {
   if(TAKESEMAPHORE) {
     char buffer[7], unit[5];
-    Serial.print("last source: ");
-    Serial.println(lastSource);
     if (lastSource == SOURCE_FM) {
       sprintf (buffer, "%.2f", freq/100.0);
       sprintf (unit, "%s", " MHz");

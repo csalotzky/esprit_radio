@@ -65,7 +65,6 @@ TFT_eSPI tft = TFT_eSPI(SCREEN_HEIGHT, SCREEN_WIDTH); // Invoke custom library
 Skin::Skin() {}
 
 void Skin::InitScreen() {
-  Serial.println("HERE");
   tft.init();
   tft.setRotation(1);
   tft.setSwapBytes(true);

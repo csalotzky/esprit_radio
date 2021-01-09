@@ -2,6 +2,7 @@
 
 Sources tmpSrc;
 
+/* REFS */
 Gui *guiRef;
 Radio *radioRef;
 
@@ -9,54 +10,47 @@ Radio *radioRef;
 MenuView menus[5];
 int8_t menuDepth = -1;
 
-/*MenuItem currentMenuItems[30];
-uint8_t currentMenuItemsCount;
-Menus currentMenuLevel = MENU_NONE;
-uint8_t currentMenuDepth = 0;
-
-
-Menus lastMenuLevel = MENU_NONE;
-uint8_t currentSelectedMenuItem = 0;
-uint8_t lastSelectedMenuItem = 0;*/
-
-/*const Command Commands[] = {
-};*/
-
 void InterfaceInit(Gui *gui, Radio *radio){
   guiRef = gui;
   radioRef = radio;
 }
 
+// TODO
 void PowerOn() {
   Serial.println("INTERFACE | PowerOn");
 }
 
+// Switch off device (deepsleep)
 void PowerOff() {
   Serial.println("INTERFACE | PowerOff");
 
-  //radioRef->SwitchSource(SOURCE_STANDBY);
-  //Wire.end(); // shutdown/power off I2C hardware, 
-  pinMode(22,INPUT); // needed because Wire.end() enables pullups, power Saving
-  pinMode(21,INPUT);
+  // TODO - Should we disable pullups/downs at all??
+  pinMode(ROT1_CLK,INPUT);
+  pinMode(ROT1_DT,INPUT);
+  pinMode(ROT1_SW,INPUT);
+  pinMode(ROT2_CLK,INPUT);
+  pinMode(ROT2_DT,INPUT);
+  pinMode(ROT2_SW,INPUT);
 
-  pinMode(2,INPUT);
-  pinMode(12,INPUT);
-  pinMode(17,INPUT);
-  pinMode(13,INPUT);
-  pinMode(15,INPUT);
+  pinMode(NAVI_LEFT,INPUT);
+  pinMode(NAVI_RIGHT,INPUT);
+  pinMode(NAVI_UP,INPUT);
+  pinMode(NAVI_DOWN,INPUT);
+  pinMode(NAVI_OK,INPUT);
 
   radioRef->SwitchSource(SOURCE_STANDBY);
-
 
   esp_deep_sleep_start();
 }
 
+// Switch to next source
 void PowerSwitch() {
   Serial.println("INTERFACE | PowerSwitch");
 
   radioRef->SwitchSource(radioRef->currentStation.Source==SOURCE_BT ? SOURCE_FM : (Sources)(radioRef->currentStation.Source+1));
 }
 
+// Opens menu by default
 void Ok() {
   Serial.println("INTERFACE | Ok");
 
@@ -78,6 +72,7 @@ void Ok() {
   }
 }
 
+// Exits from menu or enter frequency
 void Back() {
   Serial.println("INTERFACE | Back");
   
@@ -95,6 +90,7 @@ void Back() {
   radioRef->StopSeek();
 }
 
+// Switch to FM
 void SourceFm() {
   Serial.println("INTERFACE | SourceFm");
   
@@ -103,6 +99,8 @@ void SourceFm() {
   radioRef->SwitchSource(SOURCE_FM);
 }
 
+
+// Switch to LW
 void SourceLw() {
   Serial.println("INTERFACE | SourceLw");
 
@@ -111,6 +109,7 @@ void SourceLw() {
   radioRef->SwitchSource(SOURCE_LW);
 }
 
+// Switch to MW
 void SourceMw() {
   Serial.println("INTERFACE | SourceMw");
 
@@ -119,6 +118,7 @@ void SourceMw() {
   radioRef->SwitchSource(SOURCE_MW);
 }
 
+// Switch to SW
 void SourceSw() {
   Serial.println("INTERFACE | SourceSw");
 
@@ -126,6 +126,7 @@ void SourceSw() {
   radioRef->StopSeek();
   radioRef->SwitchSource(SOURCE_SW);
 }
+
 
 void SourceSwitch() {
   Serial.println("INTERFACE | SourceSwitch");
@@ -475,8 +476,8 @@ void ExecuteButtonDefault(uint8_t key, bool longPress) {
     for (size_t i = 0; i < TOTAL_BUTTONS; i++)
     {
         if (radioRef->config.KeyMaps[i].Key == key && radioRef->config.KeyMaps[i].LongPress == longPress) {
-            Commands[radioRef->config.KeyMaps[i].CmdIndex].Fn();
-            return;
+          Commands[radioRef->config.KeyMaps[i].CmdIndex].Fn();
+          return;
         }
     }
 }

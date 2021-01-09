@@ -1,89 +1,11 @@
 #include "inputs.h"
 
-#define I2CADDR         0x20
-#define ROWS            4
-#define COLS            4
+//#define I2CADDR         0x20
 
+//i2ckeypad kpd = i2ckeypad(I2CADDR, 4, 4);
 
-
-
-/*Gui *guiRef;
-Radio *radioRef;*/
-i2ckeypad kpd = i2ckeypad(I2CADDR, ROWS, COLS);
-
-char currentKey;
-char lastKey;
-bool currentHold;
-bool lastHold;
-
-EasyButton teszt(12);
-
-//VirtualButton* currentMatrixBtn;
-
-
-
-    //bool teszt;
-    //EasyButtonVirtual testbtn(teszt);
-
-
-
-
-
-
-
-void ButtonExecute() {
-    int8_t matrixKey = -1;
-    switch (currentKey) {
- /*       // HARDCODED KEYS
-        case DEFAULT_KEY_POWER: {
-            // short press: switch source
-            if (!currentHold) PowerSwitch();
-            // long press (execute only once): power off
-            else if (!lastHold) PowerOff();
-            return;
-        } 
-        case DEFAULT_KEY_OK: return;*/
-        case KEY_MATRIX_1: matrixKey = 1; break;
-        case KEY_MATRIX_2: matrixKey = 2; break;
-        case KEY_MATRIX_3: matrixKey = 3; break;
-        case KEY_MATRIX_4: matrixKey = 4; break;
-        case KEY_MATRIX_5: matrixKey = 5; break;
-        case KEY_MATRIX_6: matrixKey = 6; break;
-        case KEY_MATRIX_7: matrixKey = 7; break;
-        case KEY_MATRIX_8: matrixKey = 8; break;
-        case KEY_MATRIX_9: matrixKey = 9; break;
-        case KEY_MATRIX_0: matrixKey = 0; break;
-        // CONFIGURABLE KEYS
-        default: {
-            for (size_t i = 0; i < TOTAL_BUTTONS; i++)
-            {
-                KeyMap tmp = radioRef->config.KeyMaps[i];
-                if (tmp.LongPress == currentHold && tmp.Key == currentKey) {
-                    Commands[tmp.CmdIndex].Fn();
-                    Serial.print(Commands[tmp.CmdIndex].DisplayName);
-                    Serial.println(" called");
-                    return;
-                }
-            }
-            return;
-        } 
-    }
-    
-    // Num pressed
-    if (matrixKey >= 0) {
-        // Enter freq mode is active
-        if (guiRef->display == GUI_ENTERFREQ) radioRef->TuneEnter(matrixKey);
-
-        // short press
-        else if (!currentHold) {
-            if (radioRef->config.IsNumKeyDefaultPreset) radioRef->RecallPreset(matrixKey ? matrixKey : 10);
-            else radioRef->TuneEnter(matrixKey);
-        }
-        // long press (execute only once)
-        else if (!lastHold) radioRef->SavePreset(matrixKey ? matrixKey : 10);
-    }
-}
-
+// Gets given rotary encoders knob state
+// https://lastminuteengineers.com/rotary-encoder-arduino-tutorial/
 void GetRotary(Rotary *rot, bool *up, bool *down) {
 	// Read the current state of CLK
     uint8_t currentStateClk = digitalRead(rot->Clk);
@@ -105,24 +27,15 @@ void GetRotary(Rotary *rot, bool *up, bool *down) {
     rot->lastStateClk=currentStateClk;
 }
 
-void ShortNumCallback() {
-    Serial.println("short");
-    Serial.println(currentKey,DEC);
-}
-
-void LongNumCallback() {
-    Serial.println("long");
-    Serial.println(currentKey,DEC);
-}
-
+// Setup method of this class
 void InputsInit(Gui *gui, Radio *radio){
     guiRef = gui;
     radioRef = radio;
     Wire.begin();
-    kpd.init();
+    //kpd.init();
     InterfaceInit(gui,radio);
 
-
+    // Initial states of rotary encoders
     #ifdef TUNE_ROTARY
     rotVol.lastStateClk = digitalRead(rotVol.Clk);
     pinMode(ROT1_CLK,INPUT);
@@ -135,21 +48,12 @@ void InputsInit(Gui *gui, Radio *radio){
     pinMode(ROT2_CLK,INPUT);
 	pinMode(ROT2_DT,INPUT);
 
-    #endif
+    #endif  
 
-    //teszt.begin();
-    
-    /*testbtn.begin();
-    testbtn.onPressed(ShortNumCallback);
-    testbtn.onPressedFor(1000,LongNumCallback);
-    */
-
-    //delay(5000);
-   
-
-    // Programmable keys
+    // Programmable keys - registers button callback based on config's keymap
     for (size_t i = 0; i < TOTAL_BUTTONS; i++)
     {
+        // Hw buttons
         KeyMap tmp = radioRef->config.KeyMaps[i];
         for (size_t j = 0; j < HwButtonsSize; j++)
         {
@@ -162,6 +66,7 @@ void InputsInit(Gui *gui, Radio *radio){
 
         }
 
+        // Matrix buttons
         for (size_t j = 0; j < VirtButtonsMatrixSize; j++)
         {
             if (!tmp.LongPress && tmp.Key == VirtButtonsMatrix[j].KeyId) VirtButtonsMatrix[j].Btn.onPressed(Commands[tmp.CmdIndex].Fn);
@@ -172,6 +77,7 @@ void InputsInit(Gui *gui, Radio *radio){
             } 
         }
 
+        // Rotary encoders
         for (size_t j = 0; j < VirtButtonsRotarySize; j++)
         {
             if (!tmp.LongPress && tmp.Key == VirtButtonsRotary[j].KeyId) VirtButtonsRotary[j].Btn.onPressed(Commands[tmp.CmdIndex].Fn);
@@ -179,10 +85,10 @@ void InputsInit(Gui *gui, Radio *radio){
         }        
     }
 
-    // Hardcoded keys
+    // Hardcoded keys - overrides keymap values
     // todoooo
-    VirtButtonsMatrix[VirtButtonsMatrixSize-1].Btn.onPressed(ShortNumCallback);
-    VirtButtonsMatrix[VirtButtonsMatrixSize-1].Btn.onPressedFor(1000,LongNumCallback);
+    //VirtButtonsMatrix[VirtButtonsMatrixSize-1].Btn.onPressed(ShortNumCallback);
+    //VirtButtonsMatrix[VirtButtonsMatrixSize-1].Btn.onPressedFor(1000,LongNumCallback);
     for (size_t i = 0; i < HwButtonsSize; i++) {
         if (HwButtons[i].KeyId == DEFAULT_KEY_OK) HwButtons[i].Btn.onPressed(Ok);
         if (HwButtons[i].KeyId == DEFAULT_KEY_BACK) HwButtons[i].Btn.onPressed(Back);
@@ -194,6 +100,8 @@ void InputsInit(Gui *gui, Radio *radio){
         if (HwButtons[i].KeyId == DEFAULT_KEY_PWR_BTN) HwButtons[i].Btn.onPressed(PowerSwitch);
     }
 
+
+    // Init keys!!
     for (size_t i = 0; i < HwButtonsSize; i++)
     {
         HwButtons[i].Btn.begin();
@@ -223,51 +131,16 @@ void InputsInit(Gui *gui, Radio *radio){
 }
   
 
-
+// TODO
+/*
 void KeypadLoop(void* params){
     while(true) {
            
         bool error = false;
-        //currentMatrixBtn->Btn.read();
 
         if(i2cSemaphore != NULL ) {
             if(xSemaphoreTake(i2cSemaphore, (TickType_t) 100) == pdTRUE) {
-                bool result = kpd.get_key_v2(&currentKey);
-                state_KEY_MATRIX_A = 0, state_KEY_MATRIX_B = 0, state_KEY_MATRIX_C = 0, state_KEY_MATRIX_D = 0, state_KEY_MATRIX_ASTERISK = 0, state_KEY_MATRIX_SHARP = 0, state_KEY_MATRIX_NUM = 0;
-                xSemaphoreGive(i2cSemaphore);
-                if(result) {
-                    Serial.print("[");
-                    Serial.print(currentKey,DEC);
-                    Serial.println("]");
-                    /*ButtonExecute();
-                    lastKey = currentKey;
-                    lastHold = currentHold;*/
-                    switch (currentKey)
-                    {
-                        case KEY_MATRIX_A: state_KEY_MATRIX_A = true; break;
-                        case KEY_MATRIX_B: state_KEY_MATRIX_B = true; break;
-                        case KEY_MATRIX_C: state_KEY_MATRIX_C = true; break;
-                        case KEY_MATRIX_D: state_KEY_MATRIX_D = true; break;
-                        case KEY_MATRIX_ASTERISK: state_KEY_MATRIX_ASTERISK = true; break;
-                        case KEY_MATRIX_SHARP: state_KEY_MATRIX_SHARP = true; break;
-                        default: state_KEY_MATRIX_NUM = true; break;
-                    }
-                }
-                else {
-                      /*lastKey = '\0';
-                      lastHold = false;*/
-                }
-                for (size_t i = 0; i < VirtButtonsMatrixSize; i++) VirtButtonsMatrix[i].Btn.read();
-                //VirtButtonsMatrix[VirtButtonsMatrixSize-1].Btn.read();
-                //Serial.println(teszt);
-                //testbtn.read();
-                //Serial.println(VirtButtonsMatrix[VirtButtonsMatrixSize-1].KeyId);
-                //if (VirtButtonsMatrix[VirtButtonsMatrixSize-1].Btn.isPressed()) Serial.println("PRESSED");
-                /*if (VirtButtonsMatrix[VirtButtonsMatrixSize-1].Btn.isPressed()) {
-                    if (guiRef->display == GUI_ENTERFREQ || !radioRef->config.IsNumKeyDefaultPreset) radioRef->TuneEnter(currentKey);
-                    else radioRef->RecallPreset(currentKey ? currentKey : 10);
-                } 
-                else if (VirtButtonsMatrix[VirtButtonsMatrixSize-1].Btn.pressedFor(1000) && (guiRef->display == GUI_RADIOMAIN || guiRef->display == GUI_RADIOSIGNAL)) radioRef->SavePreset(currentKey ? currentKey : 10);*/
+
             }
             else {
                 error = true;
@@ -283,7 +156,9 @@ void KeypadLoop(void* params){
         vTaskDelay(50 / portTICK_PERIOD_MS);
     }
 }
+*/
 
+// Read all button state - except matrix keypad
 void ButtonLoop(void* params) {
     while(true) {
         #ifdef TUNE_ROTARY
@@ -296,7 +171,6 @@ void ButtonLoop(void* params) {
         GetRotary(&rotVol,&state_KEY_ROT_ROT2_UP,&state_KEY_ROT_ROT2_DOWN);
         #endif     
 
-        //if (state_KEY_ROT_ROT1_UP) Serial.println("state_KEY_ROT_ROT1_UP");
         for (size_t i = 0; i < VirtButtonsRotarySize; i++) VirtButtonsRotary[i].Btn.read();
         for (size_t i = 0; i < HwButtonsSize; i++)
         {
@@ -308,4 +182,3 @@ void ButtonLoop(void* params) {
         vTaskDelay(1 / portTICK_PERIOD_MS);
     }
 }
-

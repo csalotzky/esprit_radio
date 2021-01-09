@@ -2,9 +2,6 @@
 
 #define NXP_ADDRESS 0x64
 
-#define I2C_SDA 21
-#define I2C_SCL 22
-
 unsigned char TunerBufferWrite(unsigned char *buf, uint16_t len) {
   uint16_t i;
   uint8_t r;

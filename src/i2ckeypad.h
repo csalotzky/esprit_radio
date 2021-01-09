@@ -9,8 +9,7 @@ class i2ckeypad {
 public:
   i2ckeypad(int);
   i2ckeypad(int, int, int);
-  bool get_key(char *key, bool *hold);
-  bool get_key_v2(char *key);
+  bool get_key(char *key);
   void init();
   
 private:

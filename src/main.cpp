@@ -18,27 +18,23 @@
 #define TFT_SLPIN   0x10
 #endif
 
-#define TFT_MOSI            19
-#define TFT_SCLK            18
-#define TFT_CS              5
-#define TFT_DC              16
-#define TFT_RST             23
-#define TFT_BL              4   // Display backlight control pin
+#define TFT_MOSI    19
+#define TFT_SCLK    18
+#define TFT_CS      5
+#define TFT_DC      16
+#define TFT_RST     23
+#define TFT_BL      4   // Display backlight control pin
 
-#define ADC_EN              14  //ADC_EN is the ADC detection enable port
-#define ADC_PIN             34
-#define BUTTON_1            35
-#define BUTTON_2            0
+#define ADC_EN      14  //ADC_EN is the ADC detection enable port
+#define ADC_PIN     34
+#define BUTTON_1    35
+#define BUTTON_2    0
 
-#define BATT_MAX            4.00
-#define BATT_MIN            3.30
+#define BATT_MAX    4.00    // Battery's max voltage
+#define BATT_MIN    3.30    // Battery's min voltage
  
 
-//TFT_eSPI tft = TFT_eSPI(135, 240); // Invoke custom library
 Gui gui;
-Button2 btn1(BUTTON_1);
-Button2 btn2(BUTTON_2);
-
 Radio radio;
 
 int vref = 1100;
@@ -51,6 +47,7 @@ void espDelay(int ms)
     esp_light_sleep_start();
 }
 
+// Task of battery check and display
 void BatteryLoop(void* params){
     while(true) {
         uint16_t v = analogRead(ADC_PIN);
@@ -96,7 +93,9 @@ void setup() {
     /* INIT BUTTONS */
     vTaskDelay(100);
     InputsInit(&gui, &radio);
-    pinMode(GPIO_NUM_27,INPUT_PULLDOWN);
+    // Toggle switch should be pulled down
+    // TODO: Do it, when init other buttons
+    pinMode(POWER_SWITCH_PIN,INPUT_PULLDOWN);
 }
 
 void loop() {}

@@ -61,7 +61,6 @@ void MenuRight();
 void MenuUp();
 void MenuDown();
 
-
 struct MenuView {
   MenuItem Items[30];
   uint8_t ItemsCount;
@@ -75,6 +74,11 @@ void CloseMenu();
 void MenuBool(bool *value, const char *displayTexts[]);
 void MenuInt(uint8_t *value, uint8_t options[], const char *optionsTexts[], uint8_t optionsLength);
 
+// Collection of assignable functions
+// MenuCat: menu category where function belongs. MENU_NONE: not present in any menu (but assignable to button)
+// EnableAssign: Can assign to button
+// RepeatableExecute: Long press execute should repeat this function (e.g.: repeat manual tune if assigned as long press)
+// Fn: pointer of function (void)
 const struct {
   const char *DisplayName;
   Menus MenuCat;

@@ -127,13 +127,14 @@ void SourceSw() {
   radioRef->SwitchSource(SOURCE_SW);
 }
 
-
+// TODO
 void SourceSwitch() {
   Serial.println("INTERFACE | SourceSwitch");
   
   radioRef->StopSeek();
 }
 
+// Tune up - fine step
 void TuneManualMinstepUp() {
   Serial.println("INTERFACE | TuneManualMinstepUp");
   
@@ -141,6 +142,7 @@ void TuneManualMinstepUp() {
   radioRef->TuneManual(1,1);
 }
 
+// Tune down - fine step
 void TuneManualMinstepDown() {
   Serial.println("INTERFACE | TuneManualMinstepDown");
 
@@ -148,6 +150,7 @@ void TuneManualMinstepDown() {
   radioRef->TuneManual(0,1);
 }
 
+// Tune up - normal step
 void TuneManualMaxstepUp() {
   Serial.println("INTERFACE | TuneManualMaxstepUp");
 
@@ -155,6 +158,7 @@ void TuneManualMaxstepUp() {
   radioRef->TuneManual(1,0);
 }
 
+// Tune down - normal step
 void TuneManualMaxstepDown() {
   Serial.println("INTERFACE | TuneManualMaxstepDown");
 
@@ -162,6 +166,7 @@ void TuneManualMaxstepDown() {
   radioRef->TuneManual(0,0);
 }
 
+// Tune up - step based on config
 void TuneManualDefstepUp() {
   Serial.println("INTERFACE | TuneManualDefstepUp");
 
@@ -169,6 +174,7 @@ void TuneManualDefstepUp() {
   radioRef->TuneManual(1,radioRef->config.IsMinStep);
 }
 
+// Tune down - step based on config
 void TuneManualDefstepDown() {
   Serial.println("INTERFACE | TuneManualDefstepDown");
 
@@ -176,6 +182,7 @@ void TuneManualDefstepDown() {
   radioRef->TuneManual(0,radioRef->config.IsMinStep);
 }
 
+// Seek up
 void TuneSeekUp() {
   Serial.println("INTERFACE | TuneSeekUp");
 
@@ -183,6 +190,7 @@ void TuneSeekUp() {
   radioRef->TuneSeek(1);
 }
 
+// Seek down
 void TuneSeekDown() {
   Serial.println("INTERFACE | TuneSeekDown");
 
@@ -190,6 +198,7 @@ void TuneSeekDown() {
   radioRef->TuneSeek(0);
 }
 
+// Enter frequency dialog - current band
 void TuneEnter() {
   Serial.println("INTERFACE | TuneEnter");
 
@@ -206,6 +215,7 @@ void TuneEnter() {
   }
 }
 
+// Enter frequency dialog - FM
 void TuneEnterFm() {
   Serial.println("INTERFACE | TuneEnterFm");
 
@@ -215,6 +225,7 @@ void TuneEnterFm() {
   else radioRef->TuneEnter();
 }
 
+// Enter frequency dialog - LW
 void TuneEnterLw() {
   Serial.println("INTERFACE | TuneEnterLw");
 
@@ -224,6 +235,7 @@ void TuneEnterLw() {
   else radioRef->TuneEnter();
 }
 
+// Enter frequency dialog - MW
 void TuneEnterMw() {
   Serial.println("INTERFACE | TuneEnterMw");
 
@@ -233,6 +245,7 @@ void TuneEnterMw() {
   else radioRef->TuneEnter();
 }
 
+// Enter frequency dialog - SW
 void TuneEnterSw() {
   Serial.println("INTERFACE | TuneEnterSw");
 
@@ -242,6 +255,7 @@ void TuneEnterSw() {
   else radioRef->TuneEnter();
 }
 
+// Menu - Preset lists
 void PresetList() {
   Serial.println("INTERFACE | PresetList");
   
@@ -276,37 +290,45 @@ void PresetList() {
   }
 }
 
+// TODO
 void VolumeDown() {
   Serial.println("INTERFACE | VolumeDown");
 
 }
 
+
+// TODO
 void VolumeUp() {
   Serial.println("INTERFACE | VolumeUp");
 
 }
 
+// TODO
 void VolumeMute() {
   Serial.println("INTERFACE | VolumeMute");
 
 }
 
+// TODO
 void SetStepMin() {
   Serial.println("INTERFACE | SetStepMin");
 
 }
 
+// TODO
 void SetStepMax() {
   Serial.println("INTERFACE | SetStepMax");
 
 }
 
+// TODO
 void SetStepSwitch() {
   Serial.println("INTERFACE | SetStepSwitch");
 
   MenuBool(&radioRef->config.IsMinStep,isMinStepLUT);  
 }
 
+// Menu - save preset
 void SavePreset() {
   Serial.println("INTERFACE | SavePreset");
 
@@ -337,13 +359,15 @@ void SavePreset() {
   }
 }
 
+// Menu - set stereo
 void SetStereo() {
   Serial.println("INTERFACE | SetStereo");
 
   MenuBool(&radioRef->config.IsStereo,isStereoLUT);
-
 }
 
+
+// Menu - set region
 void SetRegion() {
   Serial.println("INTERFACE | SetRegion");
   uint8_t regionsLength = sizeof(Regions)/sizeof(Regions[0]);
@@ -357,9 +381,9 @@ void SetRegion() {
   }
  
   MenuInt(&radioRef->config.Region,regionsValues,regionsTexts,regionsLength);
-
 }
 
+// Menu - set seek signal level
 void SetSeekLevel() {
   Serial.println("INTERFACE | SetSeekLevel");
 
@@ -368,6 +392,7 @@ void SetSeekLevel() {
   MenuInt((uint8_t*)&radioRef->config.SeekLevel,levelValues,levelTexts,10);
 }
 
+// Menu - set seek usn level
 void SetSeekUsn() {
   Serial.println("INTERFACE | SetSeekUsn");
 
@@ -377,6 +402,7 @@ void SetSeekUsn() {
   MenuInt((uint8_t*)&radioRef->config.SeekUsn,usnValues,usnTexts,10);
 }
 
+// Menu - set RDS PI mode
 void SetPiMode() {
   Serial.println("INTERFACE | SetPiMode");
 
@@ -385,6 +411,7 @@ void SetPiMode() {
 
 }
 
+// Menu - set RDS PS mode
 void SetPsMode() {
   Serial.println("INTERFACE | SetPsMode");
 
@@ -392,18 +419,21 @@ void SetPsMode() {
   MenuInt((uint8_t*)&radioRef->config.PsMode,values,rdsModeLUT,3);
 }
 
+// Menu - set RDS AF mode
 void SetRdsAf() {
   Serial.println("INTERFACE | SetPsMode");
 
   MenuBool(&radioRef->config.IsRdsAf,offOnLUT);  
 }
 
+// TODO
 void SetKeymaps() {
   Serial.println("INTERFACE | SetKeymaps");
 
 }
 
 /* Methods with parameters */
+// Save preset
 void SavePreset(uint8_t preset) {
   Serial.println("INTERFACE | RecallPreset");
 
@@ -411,6 +441,7 @@ void SavePreset(uint8_t preset) {
   CloseMenu();
 }
 
+// Switch to preset
 void RecallPreset(uint8_t preset) {
   Serial.println("INTERFACE | RecallPreset");
 
@@ -418,25 +449,25 @@ void RecallPreset(uint8_t preset) {
   CloseMenu();
 }
 
+// TODO - Obsolete(?)
 void NumberPress(uint8_t number) {
   Serial.println("INTERFACE | NumberPress");
 
 }
 
-/* ??? */
+/* ETC */
+// Modifies a config variable's value, then saves config and call a reload function in radio class. ptr: pointer to var, value: new value
 void SetConfigAttribute(uint8_t * ptr, uint8_t value) {
   Serial.println("INTERFACE | SetConfigAttribute");
-  Serial.println(*ptr);
-  Serial.println(value);
   *ptr = value;
   SaveConfigSPIFFS(radioRef->config);
   radioRef->TunerConfigCommands();
 
   Back();
-
 }
 
 /* Hardcoded methods */
+// KEY_NAVI_LEFT's default action is overrided if menu (or enterfreq dialog) is active.
 void MenuLeft() {
   Serial.println("INTERFACE | MenuLeft");
 
@@ -445,6 +476,7 @@ void MenuLeft() {
   
 }
 
+// KEY_NAVI_RIGHT's default action is overrided if menu (or enterfreq dialog) is active.
 void MenuRight() {
   Serial.println("INTERFACE | MenuRight");
 
@@ -452,6 +484,7 @@ void MenuRight() {
   else if (guiRef->display == GUI_MENU || guiRef->display == GUI_ENTERFREQ) Ok();
 }
 
+// KEY_NAVI_UP's default action is overrided if menu (or enterfreq dialog) is active.
 void MenuUp() {
   Serial.println("INTERFACE | MenuUp");
 
@@ -462,6 +495,7 @@ void MenuUp() {
   }
 }
 
+// KEY_NAVI_DOWN's default action is overrided if menu (or enterfreq dialog) is active.
 void MenuDown() {
   Serial.println("INTERFACE | MenuDown");
 
@@ -472,6 +506,7 @@ void MenuDown() {
   }
 }
 
+// Executes key's function (based on config)
 void ExecuteButtonDefault(uint8_t key, bool longPress) {
     for (size_t i = 0; i < TOTAL_BUTTONS; i++)
     {
@@ -483,6 +518,7 @@ void ExecuteButtonDefault(uint8_t key, bool longPress) {
 }
 
 /* MENU FUNCTIONS */
+// Menu - opens a menu: generates MenuView then send to GUI
 void OpenMenu(Menus menu, uint8_t selected) {
   if (menu == MENU_NONE) {
     CloseMenu();
@@ -491,12 +527,14 @@ void OpenMenu(Menus menu, uint8_t selected) {
 
   menuDepth++;
   uint8_t j = 0;
+  // Get and add commands (of current Menus enum)
   for (size_t i = 0; i < sizeof(Commands)/sizeof(Commands[0]); i++)
   {
     if (Commands[i].MenuCat == menu) {
       menus[menuDepth].Items[j++] = {Commands[i].DisplayName,0,0,MENU_NONE,Commands[i].Fn};
     }
   }
+  // Add submenus (only available in main menu)
   if (menu == MENU_MAIN) {
     menus[menuDepth].Items[j++] = {"Sources",0,1,MENU_SOURCES};
     menus[menuDepth].Items[j++] = {"Tuner settings",0,1,MENU_TUNER};
@@ -508,20 +546,26 @@ void OpenMenu(Menus menu, uint8_t selected) {
   menus[menuDepth].ItemsCount = j;
   menus[menuDepth].SelectedItem = selected;
 
+  // Send to gui
   guiRef->DisplayMenu(menus[menuDepth].Items,menus[menuDepth].ItemsCount,menus[menuDepth].SelectedItem);
 }
 
+// Menu - opens a menu: MenuView is given as parameter, send to GUI
 void OpenMenu(MenuView menuView) {
   menuDepth++;
   menus[menuDepth] = menuView;
   guiRef->DisplayMenu(menus[menuDepth].Items,menus[menuDepth].ItemsCount,menus[menuDepth].SelectedItem);
 }
 
+// Close menu
 void CloseMenu() {
   menuDepth = -1;
   guiRef->RestoreLast();
 }
 
+// Menu option for a boolean config varaible
+// value: pointer of variable
+// displayTexts: true and false labels
 void MenuBool(bool *value, const char *displayTexts[]) {
   MenuView menu;
   menu.SelectedItem = *value;
@@ -533,6 +577,11 @@ void MenuBool(bool *value, const char *displayTexts[]) {
   OpenMenu(menu);
 }
 
+// Menu option for a uint8_t config varaible
+// value: pointer of variable
+// options: array of available values
+// optionsTexts: value labels
+// optionsLength: length of options
 void MenuInt(uint8_t *value, uint8_t options[], const char *optionsTexts[], uint8_t optionsLength) {
   MenuView menu;
   menu.ItemsCount = optionsLength;
@@ -544,4 +593,3 @@ void MenuInt(uint8_t *value, uint8_t options[], const char *optionsTexts[], uint
 
   OpenMenu(menu);
 }
-

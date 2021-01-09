@@ -15,6 +15,12 @@
 #define DEFAULT_SEEKUSN     10          // Default seek usn threshold (%)
 #define DEFAULT_ISRDSAF     1           // Default RDS AF mode (bool)
 
+// No-user-modifiable things of seek
+#define SEEK_MAX_ATTEMPT    5
+#define SEEK_DELAY          5
+#define SIGNAL_MIN          0
+#define SIGNAL_MAX          70
+
 // Default keymap
 #define DEFAULT_KEYMAP      {\
                             {KEY_ROT_ROT1_DOWN,0,15},\

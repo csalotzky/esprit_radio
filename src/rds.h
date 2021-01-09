@@ -68,7 +68,6 @@ class Rds {
 
     };
 
-
     struct PtyStruct {
       uint8_t Value;
       bool Available;

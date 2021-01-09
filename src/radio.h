@@ -16,7 +16,6 @@ class Radio {
     void TunerConfigCommands();
 
     void SwitchSource(Sources source, bool performTune = true);
-    //void SwitchPreset(int preset);
     void TuneFrequency(uint16_t freq, Sources source);
     void TuneFrequency(uint16_t freq);
     void TuneManual(bool up, bool minStep);
@@ -36,7 +35,6 @@ class Radio {
 
     /* VARS */
     Gui *GuiRef;
-    //Sources currentSource;
     Rds rds;
     Station currentStation;
     uint8_t currentPreset;
@@ -54,11 +52,7 @@ class Radio {
     void CheckPi();
     
     /* VARS */
-    //uint16_t currentFrequency;
-    //uint8_t seekLevelThreshold;
-    //uint8_t seekUsnThreshold;
     SeekSates seekState;
-
     uint16_t enterFreq;
     Sources enterSource;
 };

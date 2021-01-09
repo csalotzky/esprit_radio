@@ -40,6 +40,7 @@
 
 Rds::Rds() {}
 
+// Clears structs
 void Rds::Reset() {
     Pi = {};
     Ecc = {};
@@ -47,6 +48,7 @@ void Rds::Reset() {
     Rt = {};
 }
 
+// Public method, called from radio class
 void Rds::ReceiveData(RdsData data) {
     //Serial.println(data.BlockA,BIN);
     //Serial.println(data.BlockB,BIN);
@@ -108,7 +110,7 @@ void Rds::ReceiveData(RdsData data) {
     }
 }
 
-// TODO: Where detect PI mismatch??
+// Process PI code
 /*
 LOGIC
 error == 0 => Store as realible PI
@@ -154,6 +156,7 @@ void Rds::ProcessPi(uint16_t blockAB_A_or_blockB_C, uint8_t errorAB_A_or_errorB_
         uint16_t piTemp = 0;
         for (size_t i = 0; i < 16; i++)
         {
+            // DEBUG
             //Serial.print(Pi.AverageRatios[15-i]);
             //Serial.print(" ");
             bool bit = Pi.AverageRatios[i] >= 0.0;
@@ -162,30 +165,25 @@ void Rds::ProcessPi(uint16_t blockAB_A_or_blockB_C, uint8_t errorAB_A_or_errorB_
             piTemp = piTemp | bit;
         }
 
-//Serial.print(": ");
-
         // Results
         Pi.Value = piTemp;
         Pi.IsRealible = realible;
         Pi.Available = true;
 
-
+        // DEBUG
         //Serial.println(Pi.Value, HEX);
-
     }  
 }
 
+// Process ECC country code
 void Rds::ProcessEcc(uint16_t block1A_C, uint8_t error1A_C) {
-    //if (!error1A_C) Serial.println(block1A_C & 0xFF,HEX);
-
     if (!error1A_C && !(block1A_C >> 11)) {
         Ecc.Value = block1A_C & 0xFF;
         Ecc.Available = true;
-
     }
 }
 
-
+// Process PS
 /*
 WEIGHTS:
 0 -> 10
@@ -198,12 +196,12 @@ if error == 0, 1 => save
 if error == 2, 3 => only save if "cell" is empty or saved error is 2, 3 
 realible ps if => row has only 0 errors, 2 lines are the same
 
-Method2:
+Method2: Weighted average of every bit's position.   
 */
 void Rds::ProcessPs(uint16_t block0AB_B, uint16_t block0AB_D, uint8_t error0AB_D) {
     // Raw data debug
-   // Serial.println("**************************");
-   /* Serial.print(block0AB_B & 0b11);
+    // Serial.println("**************************");
+    /* Serial.print(block0AB_B & 0b11);
     Serial.print(" value: ");
     Serial.print(char(block0AB_D >> 8));
     Serial.print(char(block0AB_D & 0xFF));
@@ -213,7 +211,7 @@ void Rds::ProcessPs(uint16_t block0AB_B, uint16_t block0AB_D, uint8_t error0AB_D
     Serial.print(" error: ");
     Serial.print(error0AB_D);
     Serial.println();
-  */
+    */
     /* INIT STUFF */
     bool foundRealible = false;
     // Char(s) position
@@ -286,7 +284,7 @@ void Rds::ProcessPs(uint16_t block0AB_B, uint16_t block0AB_D, uint8_t error0AB_D
         averagePs[2*j+1] = (psTemp&0xFF) >= 32 ? (psTemp&0xFF) : ' ';
 
 
-/*        Serial.print(std::max({
+        /*Serial.print(std::max({
             abs(Ps.AverageRatios[j][0]), 
             abs(Ps.AverageRatios[j][1]), 
             abs(Ps.AverageRatios[j][2]), 
@@ -296,8 +294,7 @@ void Rds::ProcessPs(uint16_t block0AB_B, uint16_t block0AB_D, uint8_t error0AB_D
             abs(Ps.AverageRatios[j][6]), 
             abs(Ps.AverageRatios[j][7]),
             }));
-        Serial.print(" ");
-*/
+        Serial.print(" ");*/
     }
 
     /* VALIDATE RESULTS */
@@ -347,6 +344,7 @@ void Rds::ProcessPs(uint16_t block0AB_B, uint16_t block0AB_D, uint8_t error0AB_D
         }
     }
 
+    // Store final result
     Ps.IsRealible = foundRealible;
     if (foundRealible) {
         for (size_t i = 0; i < 4; i++)
@@ -365,9 +363,7 @@ void Rds::ProcessPs(uint16_t block0AB_B, uint16_t block0AB_D, uint8_t error0AB_D
     Ps.Value[8] = '\0';
     Ps.Available = true;
 
-/*
-
-    Serial.print(" (sums: ");
+    /*Serial.print(" (sums: ");
     Serial.print(Ps.AverageSum[0]);
     Serial.print(" ");
     Serial.print(Ps.AverageSum[1]);
@@ -379,10 +375,12 @@ void Rds::ProcessPs(uint16_t block0AB_B, uint16_t block0AB_D, uint8_t error0AB_D
     //Serial.println();
 }
 
+// TODO
 void Rds::ProcessPty(uint16_t blockAB_B, uint8_t errorAB_B) {
 
 }
 
+// Process RT A
 void Rds::ProcessRtA(uint16_t block2A_B, uint16_t block2A_C, uint16_t block2A_D, uint8_t error2A_BCD) {
     if (error2A_BCD <= 1) {
         if (bool(block2A_B & 16) != Rt.IsA) {
@@ -423,14 +421,17 @@ void Rds::ProcessRtA(uint16_t block2A_B, uint16_t block2A_C, uint16_t block2A_D,
     }
 }
 
+// TODO
 void Rds::ProcessRtB(uint16_t block2B_B, uint16_t block2B_D, uint8_t error2B_BD) {
 
 }
 
+// TODO
 void Rds::ProcessAf(uint16_t block0A_C, uint8_t error0A_C) {
 
 }
 
+/* These public methods are called repeatedly in radio class. Each method returns true (means new PS/PI/RT/etc is available) only once, until the next data is available.  */
 bool Rds::ReadPi(uint16_t *result, bool *realible) {
     if (Pi.Available) {
         *result = Pi.Value;
@@ -469,7 +470,8 @@ bool Rds::ReadRt(char *result) {
     return false;
 }
 
+
+// Adds value to a 8bit unsigned variable. If result overflows, returns max value
 uint8_t Rds::Safe8bitAdd(uint8_t num, uint8_t add) {
     return uint8_t(num + add) < num ? UINT8_MAX : num + add; 
 }
-

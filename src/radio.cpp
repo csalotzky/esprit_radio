@@ -1,16 +1,13 @@
 #include "radio.h"
 
+// Task handles
 TaskHandle_t LoopSignalStrengthHandle;
 TaskHandle_t LoopRdsDecodeHandle;
 TaskHandle_t LoopAfHandle;
 TaskHandle_t LoopSearchHandle;
 TaskHandle_t SeekHandle;
 
-#define SEEK_MAX_ATTEMPT    5
-#define SEEK_DELAY          5
-#define SIGNAL_MIN          0
-#define SIGNAL_MAX          70
-
+// Ctor
 Radio::Radio() {}
 
 void Radio::InitTuner() {
@@ -18,6 +15,7 @@ void Radio::InitTuner() {
     Boot();
 
     // Read config to memory
+    // Debug: uncomment in case of config file was fucked up (resets config to default)
     //SaveConfigSPIFFS(config);
     ReadConfigSPIFFS(&config);
 
@@ -32,6 +30,7 @@ void Radio::InitTuner() {
     ReadLastStation();
 }
 
+// Called on init and when config has changed
 void Radio::TunerConfigCommands() {
     SetStereoMode(config.IsStereo);
 }
@@ -214,9 +213,6 @@ void Radio::RecallPreset(uint8_t preset) {
     }
 }
 
-
-
-
 /* TUNER ENTER FUNCTIONS */
 
 // -1: Exit and null enterfreq
@@ -382,6 +378,7 @@ uint16_t Radio::AddStepToFrequency(uint16_t freq, uint8_t step, bool up, Sources
     return tempFreq;
 }
 
+// Decides whether given frequency is within band's freq range
 bool Radio::IsValidFreq(uint16_t freq, Sources source) {
     if (source==SOURCE_FM) return freq >= Regions[config.Region].FmMin && freq <= Regions[config.Region].FmMax;
     if (source==SOURCE_LW) return freq >= Regions[config.Region].LwMin && freq <= Regions[config.Region].LwMax;
@@ -397,22 +394,8 @@ void Radio::SetStereoMode(bool isStereo) {
 
 /* TASKS */
 
-/*void Radio::StopTasks() {
-    if(LoopSignalStrengthHandle != NULL) vTaskSuspend(LoopSignalStrengthHandle);
-    if(LoopRdsDecodeHandle != NULL) vTaskSuspend(LoopRdsDecodeHandle);
-    if(SeekHandle != NULL) vTaskSuspend(SeekHandle);
-
-    // TODO
-    // Hacky - Suspependig loops may cause a hanging semaphore
-    xSemaphoreGiveFromISR(i2cSemaphore, NULL);
-    Serial.println(asd);
-    //Wire.begin();
-    vTaskDelay(5000/portTICK_PERIOD_MS);
-
-}
-*/
-
 // TODO: check status bit
+// Repeatedly reads tuner signal
 void Radio::LoopSignalStrength(void *params) {
     while(true) {
         Radio* radioRef = (Radio*) params;
@@ -446,6 +429,7 @@ void Radio::LoopSignalStrength(void *params) {
     }
 }
 
+// Repeatedly reads RDS
 void Radio::LoopRdsDecode(void *params) {
     while(true) {
         Radio* radioRef = (Radio*) params;
@@ -465,7 +449,7 @@ void Radio::LoopRdsDecode(void *params) {
                 Serial.println(status.IsSync);*/
                 ((Radio*) params)->GuiRef->DisplayRdsFlag(status.IsSync);
                 if (status.IsDataAvailable) {
-                    // proc RDS
+                    // Yay! RDS data is available
                     RdsData data;
                     if (GetRdsData(&data))
                     {
@@ -508,6 +492,7 @@ void Radio::LoopRdsDecode(void *params) {
     }
 }
 
+// Seek task
 void Radio::Seek(void *params) {
     while(true) {
         Radio* radioRef = (Radio*) params;
@@ -549,7 +534,7 @@ void Radio::Seek(void *params) {
                     Serial.print(" avgusn: ");
                     Serial.println(usnSum/i);*/
 
-                    // Our job is done here, if averagesignal is very high or very low (25...60 dBuV)
+                    // If averagesignal is very high or very low (25...60 dBuV) -> Our job is done here,
                     // Very strong signal
                     found = sigSum/i >= 60 || usnSum/i <= 1;
 
@@ -561,7 +546,7 @@ void Radio::Seek(void *params) {
                     /*Serial.print("STATUS:");
                     Serial.println(qd.Status);*/
                     
-                    // TODO ??? occasionally, when we get here, we need to wait a bit more, otherwise in the next request will be false results
+                    // TODO ??? occasionally, when we get here, we need to wait a bit more, otherwise in the next request we will get false results
                     vTaskDelay(30 / portTICK_PERIOD_MS);
                 } 
                 vTaskDelay(SEEK_DELAY / portTICK_PERIOD_MS);

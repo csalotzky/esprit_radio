@@ -2,41 +2,39 @@
 
 /* Look-Up-Tables */
 
-const char* sourceLUT[] = {
+const char *sourceLUT[] = {
     "STANDBY",
     "FM",
     "LW",
     "MW",
     "SW",
     "WEB",
-    "BLUETOOTH"
-};
+    "BLUETOOTH"};
 
-const char* isMinStepLUT[] = {
+const char *isMinStepLUT[] = {
     "Normal",
     "Fine",
 };
 
-const char* isStereoLUT[] = {
+const char *isStereoLUT[] = {
     "Mono",
     "Stereo",
 };
 
-const char* noYesLUT[] = {
+const char *noYesLUT[] = {
     "No",
     "Yes",
 };
 
-const char* offOnLUT[] = {
+const char *offOnLUT[] = {
     "Off",
     "On",
 };
 
-const char* rdsModeLUT[] = {
+const char *rdsModeLUT[] = {
     "Only realible",
     "Smart",
-    "DX"
-};
+    "DX"};
 
 /* ECC LUTs */
 const static Country eccCountries1[] = {
@@ -148,7 +146,7 @@ const static Country eccCountries6[] = {
     {"Ukraine", "UA", 0xE4},
     {"Australia", "AU", 0xF0},
     {"Oman", "OM", 0xF1},
-    {"Macau", "MO", 0xF2}, 
+    {"Macau", "MO", 0xF2},
 };
 
 const static Country eccCountries7[] = {
@@ -185,7 +183,7 @@ const static Country eccCountries8[] = {
     {"Philippines", "PH", 0xF2},
 };
 
-const static Country eccCountries9[] = {   
+const static Country eccCountries9[] = {
     {"United States", "US", 0xA0},
     {"Cuba", "CU", 0xA2},
     {"Panama", "PA", 0xA3},
@@ -201,7 +199,7 @@ const static Country eccCountries9[] = {
     {"Saudi Arabia", "SA", 0xF0},
     {"New Zealand", "NZ", 0xF1},
     {"Japan", "JP", 0xF2},
-    {"P. New Guinea", "PG", 0xF3},  
+    {"P. New Guinea", "PG", 0xF3},
 };
 
 const static Country eccCountriesA[] = {
@@ -318,20 +316,37 @@ const static Country eccCountriesF[] = {
     {"Mongolia", "MN", 0xF3},
 };
 
-const Country * eccLUT[] = { 
-    eccCountries1, 
-    eccCountries2, 
-    eccCountries3, 
-    eccCountries4, 
-    eccCountries5, 
-    eccCountries6, 
-    eccCountries7, 
-    eccCountries8, 
-    eccCountries9, 
+const Country *eccLUT[] = {
+    eccCountries1,
+    eccCountries2,
+    eccCountries3,
+    eccCountries4,
+    eccCountries5,
+    eccCountries6,
+    eccCountries7,
+    eccCountries8,
+    eccCountries9,
     eccCountriesA,
     eccCountriesB,
     eccCountriesC,
     eccCountriesD,
     eccCountriesE,
-    eccCountriesF
+    eccCountriesF};
+
+const size_t eccLUTLength[15]{
+    sizeof(eccCountries1) / sizeof(eccCountries1[0]),
+    sizeof(eccCountries2) / sizeof(eccCountries2[0]),
+    sizeof(eccCountries3) / sizeof(eccCountries3[0]),
+    sizeof(eccCountries4) / sizeof(eccCountries4[0]),
+    sizeof(eccCountries5) / sizeof(eccCountries5[0]),
+    sizeof(eccCountries6) / sizeof(eccCountries6[0]),
+    sizeof(eccCountries7) / sizeof(eccCountries7[0]),
+    sizeof(eccCountries8) / sizeof(eccCountries8[0]),
+    sizeof(eccCountries9) / sizeof(eccCountries9[0]),
+    sizeof(eccCountriesA) / sizeof(eccCountriesA[0]),
+    sizeof(eccCountriesB) / sizeof(eccCountriesB[0]),
+    sizeof(eccCountriesC) / sizeof(eccCountriesC[0]),
+    sizeof(eccCountriesD) / sizeof(eccCountriesD[0]),
+    sizeof(eccCountriesE) / sizeof(eccCountriesE[0]),
+    sizeof(eccCountriesF) / sizeof(eccCountriesF[0]),
 };

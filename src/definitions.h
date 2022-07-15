@@ -27,7 +27,7 @@
         {KEY_ROT_ROT1_DOWN, 0, 15},       \
             {KEY_ROT_ROT1_UP, 0, 14},     \
             {KEY_ROT_ROT1_PUSH, 0, 2},    \
-            {KEY_ROT_ROT1_PUSH, 1, 1},    \
+            {KEY_ROT_ROT1_PUSH, 1, 3},    \
             {KEY_ROT_ROT2_DOWN, 0, 24},   \
             {KEY_ROT_ROT2_UP, 0, 23},     \
             {KEY_ROT_ROT2_PUSH, 0, 26},   \
@@ -49,12 +49,12 @@
 // Hardcoded keys - these buttons's short press event could not be assigned in keymap feature
 #define DEFAULT_KEY_PWR_TGL KEY_POWER_SWITCH
 #define DEFAULT_KEY_PWR_BTN -1
-#define DEFAULT_KEY_OK KEY_NAVI_OK
-#define DEFAULT_KEY_BACK -1
-#define DEFAULT_KEY_LEFT KEY_NAVI_LEFT
-#define DEFAULT_KEY_RIGHT KEY_NAVI_RIGHT
-#define DEFAULT_KEY_UP KEY_NAVI_UP
-#define DEFAULT_KEY_DOWN KEY_NAVI_DOWN
+#define DEFAULT_KEY_OK KEY_ROT_ROT1_PUSH
+#define DEFAULT_KEY_BACK KEY_ROT_ROT2_PUSH
+#define DEFAULT_KEY_LEFT KEY_ROT_ROT2_DOWN
+#define DEFAULT_KEY_RIGHT KEY_ROT_ROT2_UP
+#define DEFAULT_KEY_UP KEY_ROT_ROT1_UP
+#define DEFAULT_KEY_DOWN KEY_ROT_ROT1_DOWN
 
 // Function pointers used in menu struct
 typedef void (*pCommandFn)();

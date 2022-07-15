@@ -14,10 +14,9 @@ void Radio::InitTuner()
 {
     /* Init tuner via i2c */
     Boot();
-
     // Read config to memory
     // Debug: uncomment in case of config file was fucked up (resets config to default)
-    //SaveConfigSPIFFS(config);
+    // SaveConfigSPIFFS(config);
     ReadConfigSPIFFS(&config);
 
     // Init TEF6686 commands
@@ -35,24 +34,33 @@ void Radio::InitTuner()
 void Radio::TunerConfigCommands()
 {
     SetStereoMode(config.IsStereo);
+    SetCurrentVolume((uint8_t)50);
 }
 
 /* STATION HELPERS */
 
 // Ultimate tune method, wraps TEF6686 tune command, handles tasks and gui. (CurrentStation must be up to date, when this method called!!)
-void Radio::UltimateTune(uint8_t setFreqMode, bool resetRds, bool resumeRdsLoop, bool resumeSignalLoop, bool guiMainClear, bool guiRdsClear, bool guiCacheRds, bool guiBandPreset)
+bool Radio::UltimateTune(uint8_t setFreqMode, bool resetRds, bool resumeSignalLoop, bool guiMainClear, bool guiRdsClear, bool guiCacheRds, bool guiBandPreset)
 {
+    tuneInProgress = true;
+
     /* SEND COMMAND TO TUNER */
     if (currentStation.Source == SOURCE_LW ||
         currentStation.Source == SOURCE_MW ||
         currentStation.Source == SOURCE_SW ||
         currentStation.Source == SOURCE_FM)
-        SetFrequency(currentStation.Frequency, currentStation.Source == SOURCE_FM, setFreqMode);
+        if (!SetFrequency(currentStation.Frequency, currentStation.Source == SOURCE_FM, setFreqMode))
+        {
+            tuneInProgress = false;
+            return false;
+        }
 
     /* HANDLE TASKS */
     if (resetRds)
+    {
         rds.Reset();
-    if (resumeRdsLoop && currentStation.Source == SOURCE_FM)
+    }
+    if (currentStation.Source == SOURCE_FM)
         vTaskResume(LoopRdsDecodeHandle);
     if (resumeSignalLoop && (currentStation.Source == SOURCE_FM ||
                              currentStation.Source == SOURCE_LW ||
@@ -76,6 +84,9 @@ void Radio::UltimateTune(uint8_t setFreqMode, bool resetRds, bool resumeRdsLoop,
     }
 
     GuiRef->DisplayFreq(currentStation.Frequency);
+
+    tuneInProgress = false;
+    return true;
 }
 
 // Clears CurrentStation, only keeps source and freq, given from parameter
@@ -90,11 +101,27 @@ void Radio::ClearStation(Sources newSource, uint16_t newFreq)
     currentStation.Frequency = newFreq;
 }
 
+void Radio::SetCurrentVolume(uint8_t volume)
+{
+    currentVolume = volume;
+    SetVolume(volume);
+}
+
+void Radio::SetCurrentVolume(bool up)
+{
+    int8_t vol = currentVolume + (up ? 5 : -5);
+    SetCurrentVolume((uint8_t)(vol < 0 ? 0 : vol > 100 ? 100
+                                                       : vol));
+}
+
 // Sets band lowest freq (called when last listened station could not retrieved)
 void Radio::SetDefaultStation(Station *station, Sources source)
 {
     station->Frequency =
-        source == SOURCE_FM ? Regions[config.Region].FmMin : source == SOURCE_LW ? Regions[config.Region].LwMin : source == SOURCE_MW ? Regions[config.Region].MwMin : source == SOURCE_SW ? Regions[config.Region].SwMin : 0;
+        source == SOURCE_FM ? Regions[config.Region].FmMin : source == SOURCE_LW ? Regions[config.Region].LwMin
+                                                         : source == SOURCE_MW   ? Regions[config.Region].MwMin
+                                                         : source == SOURCE_SW   ? Regions[config.Region].SwMin
+                                                                                 : 0;
 }
 
 /* TUNE */
@@ -113,7 +140,7 @@ void Radio::ReadLastStation()
     if (!(ReadSourceLastStationSPIFFS(currentStation.Source, &currentPreset, &currentStation) && IsValidFreq(currentStation.Frequency, currentStation.Source)))
         SetDefaultStation(&currentStation, currentStation.Source);
 
-    UltimateTune(1, 0, 1, 1, 0, 0, 1, 1);
+    UltimateTune(1, 0, 1, 0, 0, 1, 1);
 }
 
 // Switch between sources, bands. disbling performTune will prevent method from tune to default frequency
@@ -152,7 +179,7 @@ void Radio::SwitchSource(Sources source, bool performTune)
             SetDefaultStation(&currentStation, currentStation.Source);
 
         // Tune!
-        UltimateTune(1, 1, 1, 1, 1, 0, 1, 1);
+        UltimateTune(1, 1, 1, 1, 0, 1, 1);
     }
 }
 
@@ -166,7 +193,7 @@ void Radio::TuneManual(bool up, bool minStep)
     ClearStation(currentStation.Source, freq);
 
     // Tune!
-    UltimateTune(currentStation.Source == SOURCE_FM ? 4 : 1, 1, 0, 0, 0, 1, 0, 1);
+    UltimateTune(currentStation.Source == SOURCE_FM ? 4 : 1, 1, 0, 0, 1, 0, 1);
 }
 
 // Classic seek method
@@ -186,7 +213,7 @@ void Radio::StopSeek()
 void Radio::TuneFrequency(uint16_t freq)
 {
     ClearStation(currentStation.Source, freq);
-    UltimateTune(1, 1, 0, 0, 0, 1, 0, 1);
+    UltimateTune(1, 1, 0, 0, 1, 0, 1);
 }
 
 // Tune to given freq and switch band - Used in enter frequency mode
@@ -194,7 +221,7 @@ void Radio::TuneFrequency(uint16_t freq, Sources source)
 {
     SwitchSource(source, false);
     ClearStation(source, freq);
-    UltimateTune(1, 1, 1, 1, 1, 0, 0, 1);
+    UltimateTune(1, 1, 1, 1, 0, 0, 1);
 }
 
 /* PRESET FUNCTIONS */
@@ -219,19 +246,19 @@ void Radio::RecallPreset(uint8_t preset)
 {
     Serial.println("Recall preset called!");
     Station buff;
-    if (ReadPresetByNumberSPIFFS(&buff, preset))
+    if (preset && preset <= TOTAL_PRESETS && ReadPresetByNumberSPIFFS(&buff, preset))
     {
         currentPreset = preset;
         if (buff.Source != currentStation.Source)
         {
             SwitchSource(buff.Source, false);
             currentStation = buff;
-            UltimateTune(1, 1, 1, 1, 1, 0, 1, 1);
+            UltimateTune(1, 1, 1, 1, 0, 1, 1);
         }
         else
         {
             currentStation = buff;
-            UltimateTune(1, 1, 0, 0, 0, 1, 1, 1);
+            UltimateTune(1, 1, 0, 0, 1, 1, 1);
         }
     }
     else
@@ -288,14 +315,18 @@ void Radio::TuneEnterSrc(Sources source, int8_t freqNum, bool forceTune)
         /*
             (DX)
             FM: min: 6, max: 1 -> 1,6,7,8,9
-            LW: min: 1, max: 2 -> 1,2              
+            LW: min: 1, max: 2 -> 1,2
             MW: min: 5, max: 1 -> 1,5,6,7,8,9
             SW: min: 2: max: 2 -> 2
         */
         bandMin =
-            source == SOURCE_FM ? Regions[config.Region].FmMin : source == SOURCE_LW ? Regions[config.Region].LwMin : source == SOURCE_MW ? Regions[config.Region].MwMin : Regions[config.Region].SwMin;
+            source == SOURCE_FM ? Regions[config.Region].FmMin : source == SOURCE_LW ? Regions[config.Region].LwMin
+                                                             : source == SOURCE_MW   ? Regions[config.Region].MwMin
+                                                                                     : Regions[config.Region].SwMin;
         bandMax =
-            source == SOURCE_FM ? Regions[config.Region].FmMax : source == SOURCE_LW ? Regions[config.Region].LwMax : source == SOURCE_MW ? Regions[config.Region].MwMax : Regions[config.Region].SwMax;
+            source == SOURCE_FM ? Regions[config.Region].FmMax : source == SOURCE_LW ? Regions[config.Region].LwMax
+                                                             : source == SOURCE_MW   ? Regions[config.Region].MwMax
+                                                                                     : Regions[config.Region].SwMax;
 
         if (enterFreq < 10)
         {
@@ -305,7 +336,7 @@ void Radio::TuneEnterSrc(Sources source, int8_t freqNum, bool forceTune)
                 minFirstDigit /= 10;
             while (maxFirstDigit >= 10)
                 maxFirstDigit /= 10;
-            //bool minIsLower = minFirstDigit < maxFirstDigit;
+            // bool minIsLower = minFirstDigit < maxFirstDigit;
 
             if (!(enterFreq >= minFirstDigit || enterFreq <= maxFirstDigit))
 
@@ -335,7 +366,7 @@ void Radio::TuneEnterSrc(Sources source, int8_t freqNum, bool forceTune)
         if (IsValidFreq((source == SOURCE_FM ? enterFreq * 10 : enterFreq), source))
         {
             GuiRef->RestoreLast();
-            //Serial.println(source == SOURCE_FM ? enterFreq*10 : enterFreq);
+            // Serial.println(source == SOURCE_FM ? enterFreq*10 : enterFreq);
             if (currentStation.Source == source)
                 TuneFrequency(source == SOURCE_FM ? enterFreq * 10 : enterFreq);
             else
@@ -461,14 +492,13 @@ void Radio::LoopSignalStrength(void *params)
     while (true)
     {
         Radio *radioRef = (Radio *)params;
-        while (
-            radioRef->currentStation.Source == SOURCE_FM ||
-            radioRef->currentStation.Source == SOURCE_LW ||
-            radioRef->currentStation.Source == SOURCE_MW ||
-            radioRef->currentStation.Source == SOURCE_SW)
+        while (radioRef->currentStation.Source == SOURCE_FM ||
+               radioRef->currentStation.Source == SOURCE_LW ||
+               radioRef->currentStation.Source == SOURCE_MW ||
+               radioRef->currentStation.Source == SOURCE_SW)
         {
             QualityData qd;
-            if (GetQuality(radioRef->currentStation.Source == SOURCE_FM, &qd) && qd.Status)
+            if (!radioRef->tuneInProgress && GetQuality(radioRef->currentStation.Source == SOURCE_FM, &qd) && qd.Status)
             {
                 radioRef->GuiRef->DisplaySignal(qd.Level, SIGNAL_MIN, SIGNAL_MAX); // real range is -20 ... 120 dBuV
                 /*Serial.print("STATUS: ");
@@ -499,12 +529,13 @@ void Radio::LoopRdsDecode(void *params)
 {
     while (true)
     {
+
         Radio *radioRef = (Radio *)params;
         while (radioRef->currentStation.Source == SOURCE_FM)
         {
             vTaskDelay(50 / portTICK_PERIOD_MS);
             RdsStatus status;
-            if (GetRdsStatus(&status))
+            if (!radioRef->tuneInProgress && GetRdsStatus(&status))
             {
                 /*Serial.print("Is data Avalable: ");
                 Serial.println(status.IsDataAvailable);
@@ -566,6 +597,7 @@ void Radio::LoopRdsDecode(void *params)
             else
                 Serial.println("TUNER | Error while fetching RDS STATUS");
         }
+
         vTaskSuspend(NULL);
     }
 }
@@ -585,7 +617,7 @@ void Radio::Seek(void *params)
         {
             radioRef->currentStation.Frequency = radioRef->AddStepToFrequency(radioRef->currentStation.Frequency, step, radioRef->seekState == SEEK_UP, radioRef->currentStation.Source);
             // Tune to next freq
-            radioRef->UltimateTune(2, 1, 0, 0, 0, 1, 0, 1);
+            radioRef->UltimateTune(2, 1, 0, 0, 1, 0, 1);
             vTaskDelay(SEEK_DELAY / portTICK_PERIOD_MS);
             radioRef->GuiRef->DisplayFreq(radioRef->currentStation.Frequency);
 
@@ -606,12 +638,12 @@ void Radio::Seek(void *params)
                     /*Serial.print("attempt:");
                     Serial.println(i);
 
-                    Serial.println(qd.Af);                
+                    Serial.println(qd.Af);
                     Serial.print("sig: ");
                     Serial.print(qd.Level);
                     Serial.print(" usn: ");
                     Serial.println(qd.Usn);
-                    
+
                     Serial.print("avgsig: ");
                     Serial.print(sigSum/i);
                     Serial.print(" avgusn: ");

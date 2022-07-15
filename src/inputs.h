@@ -1,7 +1,7 @@
 #ifndef _INPUTS_H_
 #define _INPUTS_H_
 
-//#include "i2ckeypad.h"
+#include "i2ckeypad.h"
 #include <Keypad.h>
 #include <Wire.h>
 #include "radio.h"
@@ -10,7 +10,10 @@
 #include "device.h"
 
 void InputsInit(Gui *gui, Radio *radio);
-void KeypadLoop(void* params);
-void ButtonLoop(void* params);
+void KeypadLoop(void *params);
+void ButtonLoop(void *params);
+
+void ShortNumCallback();
+void LongNumCallback();
 
 #endif
